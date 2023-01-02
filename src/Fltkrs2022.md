@@ -1,4 +1,4 @@
-# fltk-rs in Retrospect
+# fltk-rs in 2022
 
 Date: 2023-01-02
 
@@ -13,7 +13,7 @@ That's to say that as a novice, I made many mistakes, most of which I consider f
 
 Maybe releasing a 1.0 was a bit hasty. It taught me however more things to mitigate api breakage. Another aspect was targetting FLTK 1.4, which if you don't know is a yet to be released version of FLTK. That means it's a moving target. And even though FLTK is considered quite conservative when it comes to C++ codebases (it's still using C++98 and without the std library!), it's actively developend and several of the added functionality have changed their function signatures, which required some workarounds in fltk-rs. Some things were out of my hand, such as the upstream removal of the FLTK android driver since it was considered experimental and difficult to integrate on the C++ side, especially in preparation for the 1.4 release, so to avoid managing forks and such, it was subsequently removed from fltk-rs. 
 
-On the other hand, FLTK itself had nice improvements. Drawing on Linux/BSD now uses Cairo for anti-aliased drawing, and on Windows, it uses GDIplus to the same effect. A wayland backend was added which allows targetting wayland directly, i.e. not through xwayland. And the OpenGL backend was extended to allow drawing widgets using OpenGL. That means GlWindow can now display widgets, if you need hardware acceleration or need to display widgets on top of 3D graphics!
+On the other hand, FLTK itself had nice improvements. Drawing on Linux/BSD now uses Cairo for anti-aliased drawing, and on Windows, it uses GDI+ to the same effect. A wayland backend was added which allows targetting wayland directly, i.e. not through xwayland. And the OpenGL backend was extended to allow drawing widgets using OpenGL. That means GlWindow can now display widgets, if you need hardware acceleration or need to display widgets on top of 3D graphics!
 
 ## Looking forward
 The current plan is that once FLTK 1.4 is shipped, to release the last version of fltk-rs version 1, and continue working on fltk-rs 2.0 (work on that has started in version2 branch in the fltk-rs repo). This would be using a 0.20.x version (if possible), until an FLTK 1.5 is released, and only then to release version 2.
