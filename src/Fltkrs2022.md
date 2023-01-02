@@ -15,6 +15,9 @@ Maybe releasing a 1.0 was a bit hasty. It taught me however more things to mitig
 
 ## Looking forward
 The current plan is that once FLTK 1.4 is shipped, to release the last version of fltk-rs version 1, and continue working on fltk-rs 2.0 (work on that has started in version2 branch in the fltk-rs repo). This would be using a 0.20.x version (if possible), until an FLTK 1.5 is released, and only then to release version 2.
+
 I'm also planning to see if AccessKit can be retrofitted to fltk-rs, and maybe provide that functionality in a different crate. Even though FLTK handles keyboard navigation and input method editors, it still lacks in screen reader support.
+
 I also plan to try out the newer Rust gui toolkits, since I feel far removed from where I once was. I've only tried egui in the past year and a half, and that was to add an [fltk-rs integration](https://github.com/fltk-rs/fltk-egui) to it.
+
 I'm already excited to see the ecosystem maturing. If you frequent the Rust subreddit, you would notice a recurring question on what gui framework to use, and there would always be a few who would say that Rust isn't gui yet. Maybe not a few years back, but if you compare the situation to other programming languages (apart from C/C++), Rust already provides many gui crates that you can already use.
