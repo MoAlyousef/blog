@@ -12,10 +12,8 @@ Advantages of using C++:
 - Emscripten's headers are C/C++ headers. 
 - Emscripten supports CMake (the de jour build system for C++, via both emcmake and a CMake toolchain file). However, the docs refer to raw calls of emcc/em++, which can be difficult to translate to proper CMake scripts:
 ```cmake
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-s WASM=1 -s EVAL_CTORS=2 --bind")
 add_executable(index src/main.cpp)
-set_target_properties(index PROPERTIES SUFFIX .html)
-target_link_options(index PRIVATE --shell-file ${CMAKE_CURRENT_LIST_DIR}/my_shell.html)
+set_target_properties(index PROPERTIES SUFFIX .html LINK_FLAGS "-s WASM=1 -s EVAL_CTORS=2 --bind --shell-file ${CMAKE_CURRENT_LIST_DIR}/my_shell.html")
 ```
 - Emscripten provides Boost, SDL and OpenGL/WebGL support out of the box.
 - Emscripten translates OpenGL calls to WebGL.
