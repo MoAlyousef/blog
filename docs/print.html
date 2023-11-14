@@ -9,7 +9,6 @@
 
         <!-- Custom HTML head -->
         
-        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
@@ -34,14 +33,15 @@
 
     </head>
     <body>
+    <div id="body-container">
         <!-- Provide site root to javascript -->
-        <script type="text/javascript">
+        <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
-        <script type="text/javascript">
+        <script>
             try {
                 var theme = localStorage.getItem('mdbook-theme');
                 var sidebar = localStorage.getItem('mdbook-sidebar');
@@ -57,7 +57,7 @@
         </script>
 
         <!-- Set the theme before any content is loaded, prevents flash -->
-        <script type="text/javascript">
+        <script>
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
@@ -69,12 +69,14 @@
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
-        <script type="text/javascript">
+        <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -82,7 +84,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li><li class="chapter-item expanded "><a href="WasmCompute.html"><strong aria-hidden="true">6.</strong> Fibonacci benchmarks between js, wasm and server</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -100,7 +102,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
@@ -133,7 +135,7 @@
                 </div>
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
-                <script type="text/javascript">
+                <script>
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
                     document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
                     Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
@@ -181,8 +183,7 @@ fn main() {
         .file(&quot;src/main.c&quot;)
         .define(&quot;main&quot;, &quot;cbin_main&quot;) // notice our define here!
         .compile(&quot;cbin&quot;);
-}
-</code></pre></pre>
+}</code></pre></pre>
 <p>Check everything builds by running <code>cargo build</code>, you'll notice cargo built a static library <code>libcbin.a</code> (or cbin.lib if using the msvc toolchain) in the OUT_DIR.</p>
 <p>Lets now wrap the library call <code>cbin_main</code> which we had redefined in our build. Our src/main.rs should look like:</p>
 <pre><pre class="playground"><code class="language-rust">// src/main.rs
@@ -200,8 +201,7 @@ fn main() {
         .map(|s| CString::new(s).unwrap().into_raw())
         .collect();
     let _ret = unsafe { cbin_main(args.len() as i32, args.as_mut_ptr()) };
-}
-</code></pre></pre>
+}</code></pre></pre>
 <p>This basically takes all command-line args passed to the Rust binary and passes them to the C binary (that we turned into a library!).</p>
 <p>You can check by running:</p>
 <pre><code>$ cargo run -- world
@@ -468,8 +468,7 @@ fn main() {
 
         UIApplicationMain(0, ptr::null_mut(), ptr::null_mut(), name);
     }
-}
-</code></pre></pre>
+}</code></pre></pre>
 <p>This can be built with cargo:</p>
 <pre><code>cargo build --target=x86_64-apple-ios # targetting a simulator
 # you can move the generated binary to a prepared bundle folder with an appropriate info.plist
@@ -501,10 +500,8 @@ Similarly, you can invoke clang directly with the <code>--target=wasm32</code> f
 <li>Emscripten's headers are C/C++ headers. </li>
 <li>Emscripten supports CMake (the de jour build system for C++, via both emcmake and a CMake toolchain file). However, the docs refer to raw calls of emcc/em++, which can be difficult to translate to proper CMake scripts:</li>
 </ul>
-<pre><code class="language-cmake">set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} &quot;-s WASM=1 -s EVAL_CTORS=2 --bind&quot;)
-add_executable(index src/main.cpp)
-set_target_properties(index PROPERTIES SUFFIX .html)
-target_link_options(index PRIVATE --shell-file ${CMAKE_CURRENT_LIST_DIR}/my_shell.html)
+<pre><code class="language-cmake">add_executable(index src/main.cpp)
+set_target_properties(index PROPERTIES SUFFIX .html LINK_FLAGS &quot;-s WASM=1 -s EVAL_CTORS=2 --bind --shell-file ${CMAKE_CURRENT_LIST_DIR}/my_shell.html&quot;)
 </code></pre>
 <ul>
 <li>Emscripten provides Boost, SDL and OpenGL/WebGL support out of the box.</li>
@@ -554,8 +551,7 @@ fn main() {
     let btn = doc.create_element(&quot;BUTTON&quot;).unwrap();
     body.append_child(&amp;elem).unwrap();
     btn.set_text_content(Some(&quot;Click&quot;));
-}
-</code></pre></pre>
+}</code></pre></pre>
 <p>Disadvantages of using Rust:</p>
 <ul>
 <li>The wasm32-unknown-unknown toolchain doesn't translate filesystem or threading calls. (except for the wasi target which translates std::fs calls into the platform equivalent calls, however, an app targetting wasi might not work in the browser).</li>
@@ -572,7 +568,7 @@ fn main() {
 <p>Looking back into 2022, <a href="https://github.com/fltk-rs/fltk-rs">fltk-rs</a> saw its 1.0 release in April 2022. On October 2022, the project finished its 3rd year. 2022 also saw the publication of the fltk-rs <a href="https://fltk-rs.github.io/fltk-book/">book</a>. And a rewrite of <a href="https://github.com/fltk-rs/fl2rust">fl2rust</a>, which is a FLUID to Rust transpiler. Fluid is a RAD FLTK application which is similar to Gtk's glade and QtCreator. </p>
 <p>Looking back further, fltk-rs was started for a specific requirement, to easily deploy statically-linked gui applications on Windows 7 PCs in my university hospital's simulation center, it also had to be crossplatform for those using mac laptops! </p>
 <p>At the time, most pure Rust toolkits lacked many functionalities I needed (menus, tables, multiline text input, custom graph drawing, multiwindows ...etc), and I was just starting to use Rust so I felt incapable of contributing to the budding gui ecosystem. Gtk and Qt bindings existed at the time, but required dynamic linking. It was also during covid lockdown, so I had some extra time since teaching duties and elective cases decreased. So instead of just writing the project in another language, I started learning Rust and applying that knowledge into creating the bindings to FLTK.</p>
-<p>That's to say that as a novice, I made many mistakes, most of which I consider fixed with the 1.0 release, however, there are some which were pointed out later, namely the timeout api, escpecially when it comes to cancellation. The older functions were deprecated, but the newer ones like <code>app::add_timeout3</code> and <code>app::remove_timeout3</code> stand out like a sore thumb.</p>
+<p>That's to say that as a novice, I made many mistakes, most of which I consider fixed with the 1.0 release, however, there are some which were pointed out later, namely the timeout api, escpecially when it comes to cancellation. The older functions were deprecated, but the newer ones like <code>app::add_timeout3</code> and <code>app::remove_timeout3</code> stick out like a sore thumb.</p>
 <p>Maybe releasing a 1.0 was a bit hasty. It taught me however more things to mitigate api breakage. Another aspect was targetting FLTK 1.4, which if you don't know is a yet to be released version of FLTK. That means it's a moving target. And even though FLTK is considered quite conservative when it comes to C++ codebases (it's still using C++98 and without the std library!), it's actively developend and several of the added functionality have changed their function signatures, which required some workarounds in fltk-rs. Some things were out of my hand, such as the upstream removal of the FLTK android driver since it was considered experimental and difficult to integrate on the C++ side, especially in preparation for the 1.4 release, so to avoid managing forks and such, it was subsequently removed from fltk-rs. </p>
 <p>On the other hand, FLTK itself had nice improvements. Drawing on Linux/BSD now uses Cairo for anti-aliased drawing, and on Windows, it uses GDI+ to the same effect. A wayland backend was added which allows targetting wayland directly, i.e. not through xwayland. And the OpenGL backend was extended to allow drawing widgets using OpenGL. That means GlWindow can now display widgets, if you need hardware acceleration or need to display widgets on top of 3D graphics!</p>
 <h2 id="looking-forward"><a class="header" href="#looking-forward">Looking forward</a></h2>
@@ -580,6 +576,43 @@ fn main() {
 <p>I'm also planning to see if AccessKit can be retrofitted to fltk-rs, and maybe provide that functionality in a different crate. Even though FLTK handles keyboard navigation and input method editors, it still lacks in screen reader support.</p>
 <p>I also plan to try out the newer Rust gui toolkits, since I feel far removed from where I once was. I've only tried egui in the past year and a half, and that was to add an <a href="https://github.com/fltk-rs/fltk-egui">fltk-rs integration</a> to it.</p>
 <p>I'm already excited to see the ecosystem maturing. If you frequent the Rust subreddit, you would notice a recurring question on what gui framework to use, and there would always be a few who would say that Rust isn't gui yet. Maybe not a few years back, but if you compare the situation to other programming languages (apart from C/C++), Rust already provides many gui crates that you can already use.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="fibonacci-benchmarks-between-js-wasm-and-server"><a class="header" href="#fibonacci-benchmarks-between-js-wasm-and-server">Fibonacci benchmarks between js, wasm and server</a></h1>
+<h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
+<p>WebAssembly can't directly access the DOM, it has to call javascript to do so and is known to incur a cost when manipulating the DOM. How about raw computation, how does wasm compare to server-side computation or client-side javascript computation?</p>
+<p>The source code for the benchmark can be found in https://github.com/MoAlyousef/fib-bench, along with instructions on how to build it.</p>
+<h2 id="results"><a class="header" href="#results">Results</a></h2>
+<p>With an input value of 1:</p>
+<ul>
+<li>servertime: 6.831298828125 ms</li>
+<li>wasmtime: 0.008056640625 ms</li>
+<li>jstime: 0.004150390625 ms</li>
+</ul>
+<p>With an input value of 45:</p>
+<ul>
+<li>servertime: 2983.470703125 ms</li>
+<li>wasmtime: 8184.0751953125 ms</li>
+<li>jstime: 15975.77490234375 ms</li>
+</ul>
+<p>The results should appear in the browser's dev console. </p>
+<p>This was run on a windows machine running wsl2 x86_64 GNU/Linux.
+Specs:</p>
+<ul>
+<li>Intel(R) Core(TM) i7-8550U CPU @ 1.80GHz</li>
+<li>Speed: 3.40 GHz</li>
+<li>Cores: 4</li>
+<li>Logical processors: 8</li>
+<li>RAM: 16 GB</li>
+<li>HDD: ST1000LM035-1RK172</li>
+</ul>
+<p>Rust version: 1.71 stable.
+Google chrome: Version 119.0.6045.107 (Official Build) (64-bit)</p>
+<h2 id="conclusion-2"><a class="header" href="#conclusion-2">Conclusion</a></h2>
+<ul>
+<li>wasm-opt -O3 didn't improve performance by much. It did reduce the generated wasm size by 30 percent however.</li>
+<li>Calling server-side computations requires a network call and marshalling data to and from the server, which incurs an unnecessary cost when the computation is trivial. In such cases javascript and wasm offer close enough computation cost. A wasm function call cost, even though minor, can be twice as slow as the javascript one.</li>
+<li>For intensive computations, the server cost can be considered negligible since native computation remains faster than wasm. Even then, client-side javascript is only twice as slow as wasm!</li>
+<li>Wasm on the browser, to me, makes sense when wanting to target the web using a different language than javascript. Although I'm no fan of js, js browser engines do a good job at optimizing it. However other languages bring other advantages to the table, either in language merit or ecosystem, and with wasm, these can be used in browsers. It also makes sense if you're serving static web pages and not handling (or can't handle) post requrests, or want to reduce server computations.</li>
+</ul>
 
                     </main>
 
@@ -601,26 +634,27 @@ fn main() {
 
 
 
-        <script type="text/javascript">
+        <script>
             window.playground_copyable = true;
         </script>
 
 
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
 
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
 
-        <script type="text/javascript">
+        <script>
         window.addEventListener('load', function() {
             window.setTimeout(window.print, 100);
         });
         </script>
 
+    </div>
     </body>
 </html>

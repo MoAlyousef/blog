@@ -5,4 +5,5 @@
 - [Interfacing with the Objective-C runtime](ObjcRuntime.md)
 - [Rust vs C++ for frontend web (wasm) programming](RustVsCpp4Wasm.md)
 - [fltk-rs in 2022](Fltkrs2022.md)
+- [Fibonacci benchmarks between js, wasm and server](WasmCompute.md)
 

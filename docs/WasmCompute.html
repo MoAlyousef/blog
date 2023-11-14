@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Home - MoAlyousef&#x27;s blog</title>
+        <title>Fibonacci benchmarks between js, wasm and server - MoAlyousef&#x27;s blog</title>
 
 
         <!-- Custom HTML head -->
@@ -83,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html" class="active"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li><li class="chapter-item expanded "><a href="WasmCompute.html"><strong aria-hidden="true">6.</strong> Fibonacci benchmarks between js, wasm and server</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li><li class="chapter-item expanded "><a href="WasmCompute.html" class="active"><strong aria-hidden="true">6.</strong> Fibonacci benchmarks between js, wasm and server</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -144,18 +144,52 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="home"><a class="header" href="#home">Home</a></h1>
-<p>This is my personal blog. It's powered by <a href="https://github.com/rust-lang/mdBook">mdbook</a>.</p>
-<p>The source code can be found <a href="https://github.com/MoAlyousef/blog">here</a>.</p>
+                        <h1 id="fibonacci-benchmarks-between-js-wasm-and-server"><a class="header" href="#fibonacci-benchmarks-between-js-wasm-and-server">Fibonacci benchmarks between js, wasm and server</a></h1>
+<h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
+<p>WebAssembly can't directly access the DOM, it has to call javascript to do so and is known to incur a cost when manipulating the DOM. How about raw computation, how does wasm compare to server-side computation or client-side javascript computation?</p>
+<p>The source code for the benchmark can be found in https://github.com/MoAlyousef/fib-bench, along with instructions on how to build it.</p>
+<h2 id="results"><a class="header" href="#results">Results</a></h2>
+<p>With an input value of 1:</p>
+<ul>
+<li>servertime: 6.831298828125 ms</li>
+<li>wasmtime: 0.008056640625 ms</li>
+<li>jstime: 0.004150390625 ms</li>
+</ul>
+<p>With an input value of 45:</p>
+<ul>
+<li>servertime: 2983.470703125 ms</li>
+<li>wasmtime: 8184.0751953125 ms</li>
+<li>jstime: 15975.77490234375 ms</li>
+</ul>
+<p>The results should appear in the browser's dev console. </p>
+<p>This was run on a windows machine running wsl2 x86_64 GNU/Linux.
+Specs:</p>
+<ul>
+<li>Intel(R) Core(TM) i7-8550U CPU @ 1.80GHz</li>
+<li>Speed: 3.40 GHz</li>
+<li>Cores: 4</li>
+<li>Logical processors: 8</li>
+<li>RAM: 16 GB</li>
+<li>HDD: ST1000LM035-1RK172</li>
+</ul>
+<p>Rust version: 1.71 stable.
+Google chrome: Version 119.0.6045.107 (Official Build) (64-bit)</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<ul>
+<li>wasm-opt -O3 didn't improve performance by much. It did reduce the generated wasm size by 30 percent however.</li>
+<li>Calling server-side computations requires a network call and marshalling data to and from the server, which incurs an unnecessary cost when the computation is trivial. In such cases javascript and wasm offer close enough computation cost. A wasm function call cost, even though minor, can be twice as slow as the javascript one.</li>
+<li>For intensive computations, the server cost can be considered negligible since native computation remains faster than wasm. Even then, client-side javascript is only twice as slow as wasm!</li>
+<li>Wasm on the browser, to me, makes sense when wanting to target the web using a different language than javascript. Although I'm no fan of js, js browser engines do a good job at optimizing it. However other languages bring other advantages to the table, either in language merit or ecosystem, and with wasm, these can be used in browsers. It also makes sense if you're serving static web pages and not handling (or can't handle) post requrests, or want to reduce server computations.</li>
+</ul>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-
-                            <a rel="next" href="Cargo4cpp.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                                <i class="fa fa-angle-right"></i>
+                            <a rel="prev" href="Fltkrs2022.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
                             </a>
+
 
                         <div style="clear: both"></div>
                     </nav>
@@ -163,10 +197,10 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-
-                    <a rel="next" href="Cargo4cpp.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
+                    <a rel="prev" href="Fltkrs2022.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
                     </a>
+
             </nav>
 
         </div>

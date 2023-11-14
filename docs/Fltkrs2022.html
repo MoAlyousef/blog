@@ -8,7 +8,6 @@
 
         <!-- Custom HTML head -->
         
-        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
@@ -33,14 +32,15 @@
 
     </head>
     <body>
+    <div id="body-container">
         <!-- Provide site root to javascript -->
-        <script type="text/javascript">
+        <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
-        <script type="text/javascript">
+        <script>
             try {
                 var theme = localStorage.getItem('mdbook-theme');
                 var sidebar = localStorage.getItem('mdbook-sidebar');
@@ -56,7 +56,7 @@
         </script>
 
         <!-- Set the theme before any content is loaded, prevents flash -->
-        <script type="text/javascript">
+        <script>
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
@@ -68,12 +68,14 @@
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
-        <script type="text/javascript">
+        <script>
             var html = document.querySelector('html');
-            var sidebar = 'hidden';
+            var sidebar = null;
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
             }
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
@@ -81,7 +83,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html" class="active"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li></ol>
+                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html" class="active"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li><li class="chapter-item expanded "><a href="WasmCompute.html"><strong aria-hidden="true">6.</strong> Fibonacci benchmarks between js, wasm and server</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -99,7 +101,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
@@ -132,7 +134,7 @@
                 </div>
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
-                <script type="text/javascript">
+                <script>
                     document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
                     document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
                     Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
@@ -148,7 +150,7 @@
 <p>Looking back into 2022, <a href="https://github.com/fltk-rs/fltk-rs">fltk-rs</a> saw its 1.0 release in April 2022. On October 2022, the project finished its 3rd year. 2022 also saw the publication of the fltk-rs <a href="https://fltk-rs.github.io/fltk-book/">book</a>. And a rewrite of <a href="https://github.com/fltk-rs/fl2rust">fl2rust</a>, which is a FLUID to Rust transpiler. Fluid is a RAD FLTK application which is similar to Gtk's glade and QtCreator. </p>
 <p>Looking back further, fltk-rs was started for a specific requirement, to easily deploy statically-linked gui applications on Windows 7 PCs in my university hospital's simulation center, it also had to be crossplatform for those using mac laptops! </p>
 <p>At the time, most pure Rust toolkits lacked many functionalities I needed (menus, tables, multiline text input, custom graph drawing, multiwindows ...etc), and I was just starting to use Rust so I felt incapable of contributing to the budding gui ecosystem. Gtk and Qt bindings existed at the time, but required dynamic linking. It was also during covid lockdown, so I had some extra time since teaching duties and elective cases decreased. So instead of just writing the project in another language, I started learning Rust and applying that knowledge into creating the bindings to FLTK.</p>
-<p>That's to say that as a novice, I made many mistakes, most of which I consider fixed with the 1.0 release, however, there are some which were pointed out later, namely the timeout api, escpecially when it comes to cancellation. The older functions were deprecated, but the newer ones like <code>app::add_timeout3</code> and <code>app::remove_timeout3</code> stand out like a sore thumb.</p>
+<p>That's to say that as a novice, I made many mistakes, most of which I consider fixed with the 1.0 release, however, there are some which were pointed out later, namely the timeout api, escpecially when it comes to cancellation. The older functions were deprecated, but the newer ones like <code>app::add_timeout3</code> and <code>app::remove_timeout3</code> stick out like a sore thumb.</p>
 <p>Maybe releasing a 1.0 was a bit hasty. It taught me however more things to mitigate api breakage. Another aspect was targetting FLTK 1.4, which if you don't know is a yet to be released version of FLTK. That means it's a moving target. And even though FLTK is considered quite conservative when it comes to C++ codebases (it's still using C++98 and without the std library!), it's actively developend and several of the added functionality have changed their function signatures, which required some workarounds in fltk-rs. Some things were out of my hand, such as the upstream removal of the FLTK android driver since it was considered experimental and difficult to integrate on the C++ side, especially in preparation for the 1.4 release, so to avoid managing forks and such, it was subsequently removed from fltk-rs. </p>
 <p>On the other hand, FLTK itself had nice improvements. Drawing on Linux/BSD now uses Cairo for anti-aliased drawing, and on Windows, it uses GDI+ to the same effect. A wayland backend was added which allows targetting wayland directly, i.e. not through xwayland. And the OpenGL backend was extended to allow drawing widgets using OpenGL. That means GlWindow can now display widgets, if you need hardware acceleration or need to display widgets on top of 3D graphics!</p>
 <h2 id="looking-forward"><a class="header" href="#looking-forward">Looking forward</a></h2>
@@ -165,6 +167,9 @@
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next" href="WasmCompute.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -176,6 +181,9 @@
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next" href="WasmCompute.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>
@@ -183,21 +191,22 @@
 
 
 
-        <script type="text/javascript">
+        <script>
             window.playground_copyable = true;
         </script>
 
 
-        <script src="elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="mark.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="searcher.js" type="text/javascript" charset="utf-8"></script>
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
 
-        <script src="clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-        <script src="highlight.js" type="text/javascript" charset="utf-8"></script>
-        <script src="book.js" type="text/javascript" charset="utf-8"></script>
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
 
         <!-- Custom JS scripts -->
 
 
+    </div>
     </body>
 </html>
