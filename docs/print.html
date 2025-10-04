@@ -1,17 +1,17 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
         <title>MoAlyousef&#x27;s blog</title>
-        <meta name="robots" content="noindex" />
+        <meta name="robots" content="noindex">
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="favicon.svg">
         <link rel="shortcut icon" href="favicon.png">
@@ -31,15 +31,17 @@
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body>
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -61,43 +63,49 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
-            html.classList.remove('no-js')
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            html.classList.add("js");
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
+            sidebar_toggle.checked = sidebar === 'visible';
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li><li class="chapter-item expanded "><a href="WasmCompute.html"><strong aria-hidden="true">6.</strong> Fibonacci benchmarks between js, wasm and server</a></li></ol>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -153,8 +161,8 @@
 <p>If you didn't know already, Cargo, Rust's package manager, can be used to install executable binaries via cargo-install. The downside is that they have to be Rust binaries. That makes sense since it does build binaries from source, and naturally Cargo knows how to build Rust projects!</p>
 <p>However, this functionality is too good to be exclusive to Rust projects. We'll see how we can also use cargo-install to install C/C++ executables.</p>
 <p>In short, this works by redefining the C/C++ executable's main() function.</p>
-<p>The technique described here is useful when an application lacks an official package, when the official package is outdated or when you don't wish to conflict with an already installed official package. </p>
-<p>A similar technique was used to wrap <a href="https://crates.io/crates/fltk-fluid">Fluid</a> (FLTK’s gui designer). However with C++, the redefined main function needs also to be preceded by <code>extern &quot;C&quot;</code> to avoid name mangling.</p>
+<p>The technique described here is useful when an application lacks an official package, when the official package is outdated or when you don't wish to conflict with an already installed official package.</p>
+<p>A similar technique was used to wrap <a href="https://crates.io/crates/fltk-fluid">Fluid</a> (FLTK’s gui designer). However with C++, the redefined main function needs also to be preceded by <code>extern "C"</code> to avoid name mangling.</p>
 <p>Back to the topic. We'll start with a simpler project.
 We'll create our Rust project:</p>
 <pre><code>$ cargo new cbin
@@ -166,7 +174,7 @@ $ cat &gt; src/main.c &lt;&lt; EOF
 &gt; #include &lt;stdio.h&gt;
 &gt; int main(int argc, char **argv) {
 &gt;   if (argc &gt; 1)
-&gt;     printf(&quot;Hello %s\n&quot;, argv[1]);
+&gt;     printf("Hello %s\n", argv[1]);
 &gt;   return 0;
 &gt; }
 &gt; EOF
@@ -174,15 +182,15 @@ $ cat &gt; src/main.c &lt;&lt; EOF
 <p>To build the C binary, we'll need a build script, and we can use the cc crate along with it to make our lives a bit easier!</p>
 <pre><code class="language-toml"># Cargo.toml
 [build-dependencies]
-cc = &quot;1.0&quot;
+cc = "1.0"
 </code></pre>
 <p>Our build.rs file (which we create at the root of our project) would look something like:</p>
 <pre><pre class="playground"><code class="language-rust">// build.rs
 fn main() {
     cc::Build::new()
-        .file(&quot;src/main.c&quot;)
-        .define(&quot;main&quot;, &quot;cbin_main&quot;) // notice our define here!
-        .compile(&quot;cbin&quot;);
+        .file("src/main.c")
+        .define("main", "cbin_main") // notice our define here!
+        .compile("cbin");
 }</code></pre></pre>
 <p>Check everything builds by running <code>cargo build</code>, you'll notice cargo built a static library <code>libcbin.a</code> (or cbin.lib if using the msvc toolchain) in the OUT_DIR.</p>
 <p>Lets now wrap the library call <code>cbin_main</code> which we had redefined in our build. Our src/main.rs should look like:</p>
@@ -191,7 +199,7 @@ use std::env;
 use std::ffi::CString;
 use std::os::raw::*;
 
-extern &quot;C&quot; {
+extern "C" {
     pub fn cbin_main(argc: c_int, argv: *mut *mut c_char) -&gt; c_int;
 }
 
@@ -209,7 +217,7 @@ fn main() {
 <p>Now you can run <code>cargo install --path .</code> to install your C binary wrapper. Or you can publish your crate to crates.io and your crate</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="interfacing-with-the-objective-c-runtime"><a class="header" href="#interfacing-with-the-objective-c-runtime">Interfacing with the Objective-C runtime</a></h1>
 <p>Date: 2022-07-18</p>
-<p>I recently released a proof-of-concept <a href="https://github.com/MoAlyousef/floui">library</a> wrapping several native widgets on Android and iOS. It's written in C++, and I've also released <a href="https://github.com/MoAlyousef/floui-rs">Rust bindings</a> to it. In my post on the Rust subreddit announcing the release, a fellow redditor validly remarked &quot;I'm a little surprised you wrapped a floui-rs around the Floui C++ project rather than just writing rust and calling into objc or the jni&quot;. I wasn't satisfied with my succinct answer, but I thought a Reddit reply wouldn't provide enough context to many reading it. So I decided to write this post. Just a note before diving in, floui's iOS code implementation is in Objective-C++ and requires a <code>#define FLOUI_IMPL</code> macro in at least one Objective-C++ source file, the rest of the gui code can be written in cpp files or .mm files since the interface is in C++. Regarding the JNI part, it's equally painful to write in C++ or Rust. So no point in discussing that.</p>
+<p>I recently released a proof-of-concept <a href="https://github.com/MoAlyousef/floui">library</a> wrapping several native widgets on Android and iOS. It's written in C++, and I've also released <a href="https://github.com/MoAlyousef/floui-rs">Rust bindings</a> to it. In my post on the Rust subreddit announcing the release, a fellow redditor validly remarked "I'm a little surprised you wrapped a floui-rs around the Floui C++ project rather than just writing rust and calling into objc or the jni". I wasn't satisfied with my succinct answer, but I thought a Reddit reply wouldn't provide enough context to many reading it. So I decided to write this post. Just a note before diving in, floui's iOS code implementation is in Objective-C++ and requires a <code>#define FLOUI_IMPL</code> macro in at least one Objective-C++ source file, the rest of the gui code can be written in cpp files or .mm files since the interface is in C++. Regarding the JNI part, it's equally painful to write in C++ or Rust. So no point in discussing that.</p>
 <p>Most Apple frameworks expose an Objective-C api, except for some which expose a C++ (DriverKit) or a Swift api (StoreKit2). That means that Objective-C is Apple's system's language par excellence, and other languages will need to be able to interface with it for any functionality provided by Apple in its frameworks. Interfacing with Objective-C isn't straightforward, and apart from Swift (and only on Apple platforms, it can't interface with gnustep for example), no other language can directly interface with it. Luckily, the objc runtime offers C functions which allow other languages to interface with Objective-C frameworks. And any language that can call C, can -via the objc runtime- interface with Objective-C.</p>
 <p>In this post, I'll show how this can be done using C++ and Rust. The C++ version can be modified to C by just replacing <code>auto</code> with a concrete type.</p>
 <p>As an example, we'll be creating an iOS app purely in C++ and then in Rust. I say pure in that there's no visible Objective-C code as far as the developer is concerned, however, this still calls into the UIKit framework which is an ObjC framework.
@@ -238,13 +246,13 @@ The app will be the equivalent of the following Objective-C app:</p>
 
 @implementation ViewController
 - (void)clicked {
-    NSLog(@&quot;clicked&quot;);
+    NSLog(@"clicked");
 }
 - (void)viewDidLoad {
     [super viewDidLoad];
     UIButton *btn = [UIButton buttonWithType:UIButtonTypeCustom];
     btn.frame = CGRectMake(100, 100, 80, 30);
-    [btn setTitle:@&quot;Click&quot; forState:UIControlStateNormal];
+    [btn setTitle:@"Click" forState:UIControlStateNormal];
     [btn setTitleColor:UIColor.blueColor forState:UIControlStateNormal];
     [btn addTarget:self
                   action:@selector(clicked)
@@ -277,64 +285,64 @@ Objective-C itself is considered verbose, espacially when compared to Swift. How
 #include &lt;objc/runtime.h&gt;
 #include &lt;objc/message.h&gt;
 
-extern &quot;C&quot; int UIApplicationMain(int, ...);
+extern "C" int UIApplicationMain(int, ...);
 
-extern &quot;C&quot; void NSLog(objc_object *, ...);
+extern "C" void NSLog(objc_object *, ...);
 
 BOOL didFinishLaunching(objc_object *self, SEL _cmd, void *application, void *options) {
-    auto mainScreen = objc_msgSend((id)objc_getClass(&quot;UIScreen&quot;), sel_getUid(&quot;mainScreen&quot;));
+    auto mainScreen = objc_msgSend((id)objc_getClass("UIScreen"), sel_getUid("mainScreen"));
     CGRect (*boundsFn)(id receiver, SEL operation);
     boundsFn = (CGRect(*)(id, SEL))objc_msgSend_stret;
-    CGRect frame = boundsFn(mainScreen, sel_getUid(&quot;bounds&quot;));
-    auto win = objc_msgSend((id)objc_getClass(&quot;UIWindow&quot;), sel_getUid(&quot;alloc&quot;));
-    win = objc_msgSend(win, sel_getUid(&quot;initWithFrame:&quot;), frame);
-    auto viewController = objc_msgSend((id)objc_getClass(&quot;ViewController&quot;), sel_getUid(&quot;new&quot;));
-    objc_msgSend(win, sel_getUid(&quot;setRootViewController:&quot;), viewController);
-    objc_msgSend(win, sel_getUid(&quot;makeKeyAndVisible&quot;));
-    auto white = objc_msgSend((id)objc_getClass(&quot;UIColor&quot;), sel_getUid(&quot;whiteColor&quot;));
-    objc_msgSend(win, sel_getUid(&quot;setBackgroundColor:&quot;), white);
-    object_setIvar(self, class_getInstanceVariable(objc_getClass(&quot;AppDelegate&quot;), &quot;window&quot;), win);
+    CGRect frame = boundsFn(mainScreen, sel_getUid("bounds"));
+    auto win = objc_msgSend((id)objc_getClass("UIWindow"), sel_getUid("alloc"));
+    win = objc_msgSend(win, sel_getUid("initWithFrame:"), frame);
+    auto viewController = objc_msgSend((id)objc_getClass("ViewController"), sel_getUid("new"));
+    objc_msgSend(win, sel_getUid("setRootViewController:"), viewController);
+    objc_msgSend(win, sel_getUid("makeKeyAndVisible"));
+    auto white = objc_msgSend((id)objc_getClass("UIColor"), sel_getUid("whiteColor"));
+    objc_msgSend(win, sel_getUid("setBackgroundColor:"), white);
+    object_setIvar(self, class_getInstanceVariable(objc_getClass("AppDelegate"), "window"), win);
     return YES;
 }
 
 void didLoad(objc_object *self, SEL _cmd) {
     objc_super _super = {
          .receiver = self,
-         .super_class = objc_getClass(&quot;UIViewController&quot;),
+         .super_class = objc_getClass("UIViewController"),
     };
-    objc_msgSendSuper(&amp;_super, sel_getUid(&quot;viewDidLoad&quot;));
-    auto btn = objc_msgSend((id)objc_getClass(&quot;UIButton&quot;), sel_getUid(&quot;buttonWithType:&quot;), 0);
-    objc_msgSend(btn, sel_getUid(&quot;setFrame:&quot;), CGRectMake(100, 100, 80, 30));
-    auto title = objc_msgSend((id)objc_getClass(&quot;NSString&quot;), sel_getUid(&quot;stringWithUTF8String:&quot;), &quot;Click&quot;);
-    objc_msgSend(btn, sel_getUid(&quot;setTitle:forState:&quot;), title, 0);
-    auto blue = objc_msgSend((id)objc_getClass(&quot;UIColor&quot;), sel_getUid(&quot;blueColor&quot;));
-    objc_msgSend(btn, sel_getUid(&quot;setTitleColor:forState:&quot;), blue, 0);
-    objc_msgSend(btn, sel_getUid(&quot;addTarget:action:forControlEvents:&quot;), self, sel_getUid(&quot;clicked&quot;), 1 &lt;&lt; 13);
-    auto view = objc_msgSend(self, sel_getUid(&quot;view&quot;));
-    objc_msgSend(view, sel_getUid(&quot;addSubview:&quot;), btn);
+    objc_msgSendSuper(&amp;_super, sel_getUid("viewDidLoad"));
+    auto btn = objc_msgSend((id)objc_getClass("UIButton"), sel_getUid("buttonWithType:"), 0);
+    objc_msgSend(btn, sel_getUid("setFrame:"), CGRectMake(100, 100, 80, 30));
+    auto title = objc_msgSend((id)objc_getClass("NSString"), sel_getUid("stringWithUTF8String:"), "Click");
+    objc_msgSend(btn, sel_getUid("setTitle:forState:"), title, 0);
+    auto blue = objc_msgSend((id)objc_getClass("UIColor"), sel_getUid("blueColor"));
+    objc_msgSend(btn, sel_getUid("setTitleColor:forState:"), blue, 0);
+    objc_msgSend(btn, sel_getUid("addTarget:action:forControlEvents:"), self, sel_getUid("clicked"), 1 &lt;&lt; 13);
+    auto view = objc_msgSend(self, sel_getUid("view"));
+    objc_msgSend(view, sel_getUid("addSubview:"), btn);
 }
 
 void clicked(objc_object *self, SEL _cmd) {
-    auto msg = objc_msgSend((id)objc_getClass(&quot;NSString&quot;), sel_getUid(&quot;stringWithUTF8String:&quot;), &quot;clicked&quot;);
+    auto msg = objc_msgSend((id)objc_getClass("NSString"), sel_getUid("stringWithUTF8String:"), "clicked");
     NSLog(msg);
 }
 
 int main(int argc, char *argv[]) {
-    auto AppDelegateClass = objc_allocateClassPair(objc_getClass(&quot;UIResponder&quot;), &quot;AppDelegate&quot;, 0);
-    class_addIvar(AppDelegateClass, &quot;window&quot;, sizeof(id), 0, &quot;@&quot;);
-    class_addMethod(AppDelegateClass, sel_getUid(&quot;application:didFinishLaunchingWithOptions:&quot;), (IMP) didFinishLaunching, &quot;i@:@@&quot;);
+    auto AppDelegateClass = objc_allocateClassPair(objc_getClass("UIResponder"), "AppDelegate", 0);
+    class_addIvar(AppDelegateClass, "window", sizeof(id), 0, "@");
+    class_addMethod(AppDelegateClass, sel_getUid("application:didFinishLaunchingWithOptions:"), (IMP) didFinishLaunching, "i@:@@");
     objc_registerClassPair(AppDelegateClass);
 
-    auto ViewControllerClass = objc_allocateClassPair(objc_getClass(&quot;UIViewController&quot;), &quot;ViewController&quot;, 0);
-    class_addMethod(ViewControllerClass, sel_getUid(&quot;viewDidLoad&quot;), (IMP) didLoad, &quot;v@&quot;);
-    class_addMethod(ViewControllerClass, sel_getUid(&quot;clicked&quot;), (IMP) clicked, &quot;v@&quot;);
+    auto ViewControllerClass = objc_allocateClassPair(objc_getClass("UIViewController"), "ViewController", 0);
+    class_addMethod(ViewControllerClass, sel_getUid("viewDidLoad"), (IMP) didLoad, "v@");
+    class_addMethod(ViewControllerClass, sel_getUid("clicked"), (IMP) clicked, "v@");
     objc_registerClassPair(ViewControllerClass);
     
-    auto frame = objc_msgSend((id)objc_getClass(&quot;UIScreen&quot;), sel_getUid(&quot;mainScreen&quot;));
-    auto name = objc_msgSend((id)objc_getClass(&quot;NSString&quot;), sel_getUid(&quot;stringWithUTF8String:&quot;), &quot;AppDelegate&quot;);
-    id autoreleasePool = objc_msgSend((id)objc_getClass(&quot;NSAutoreleasePool&quot;), sel_registerName(&quot;new&quot;));
+    auto frame = objc_msgSend((id)objc_getClass("UIScreen"), sel_getUid("mainScreen"));
+    auto name = objc_msgSend((id)objc_getClass("NSString"), sel_getUid("stringWithUTF8String:"), "AppDelegate");
+    id autoreleasePool = objc_msgSend((id)objc_getClass("NSAutoreleasePool"), sel_registerName("new"));
     UIApplicationMain(argc, argv, nil, name);
-    objc_msgSend(autoreleasePool, sel_registerName(&quot;drain&quot;));
+    objc_msgSend(autoreleasePool, sel_registerName("drain"));
 }
 </code></pre>
 <p>You can create a new Objective-C project, delete all source files and replace them with this single C++ file, and XCode will happily build it and run the binary on your simulator.
@@ -349,9 +357,9 @@ project(app)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(MACOSX_BUNDLE_BUNDLE_NAME &quot;Minimal Uikit Application&quot;)
+set(MACOSX_BUNDLE_BUNDLE_NAME "Minimal Uikit Application")
 set(MACOSX_BUNDLE_BUNDLE_VERSION 0.1.0)
-set(MACOSX_BUNDLE_COPYRIGHT &quot;Copyright © 2022 moalyousef.github.io. All rights reserved.&quot;)
+set(MACOSX_BUNDLE_COPYRIGHT "Copyright © 2022 moalyousef.github.io. All rights reserved.")
 set(MACOSX_BUNDLE_GUI_IDENTIFIER com.neurosrg.cpure)
 set(MACOSX_BUNDLE_ICON_FILE app)
 set(MACOSX_BUNDLE_LONG_VERSION_STRING 0.1.0)
@@ -359,14 +367,14 @@ set(MACOSX_BUNDLE_SHORT_VERSION_STRING 0.1)
 
 add_executable(main main.cpp)
 target_compile_features(main PUBLIC cxx_std_11)
-target_link_libraries(main PUBLIC &quot;-framework UIKit&quot; &quot;-framework CoreFoundation&quot; &quot;-framework Foundation&quot; objc)
+target_link_libraries(main PUBLIC "-framework UIKit" "-framework CoreFoundation" "-framework Foundation" objc)
 </code></pre>
 <p>Then:</p>
 <pre><code>cmake -Bbin -GNinja -DPLATFORM=OS64COMBINED -DCMAKE_TOOLCHAIN_FILE=ios.toolchain.cmake # just to get the compile commands for clangd auto-completion on vscode
 rm -rf bin
 cmake -Bbin -GXcode -DPLATFORM=OS64COMBINED -DCMAKE_TOOLCHAIN_FILE=ios.toolchain.cmake 
 cd bin
-xcodebuild build -configuration Debug -sdk iphonesimulator -arch x86_64 CODE_SIGN_IDENTITY=&quot;&quot; CODE_SIGNING_REQUIRED=NO
+xcodebuild build -configuration Debug -sdk iphonesimulator -arch x86_64 CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
 xcrun simctl install booted Debug-iphonesimulator/main.app
 </code></pre>
 <p>Returning to our C++ example, you can notice how the verbosity of Objective-C became 3-fold in the C++ example. This is also a stringly-typed api, meaning if you type the selector wrong, the compiler won't catch it, and you'll be hit with a runtime exception. You can argue that Objective-C also will gladly let you write whatever selector you want, and still throw. However, with tooling like XCode, this would be caught. You can even compile your code with <code>-Wno-objc-method-access</code> to catch such problems in Objective-C at compile time.</p>
@@ -382,7 +390,7 @@ use std::ptr;
 #[repr(C)]
 struct Frame(pub f64, pub f64, pub f64, pub f64);
 
-extern &quot;C&quot; fn did_finish_launching_with_options(
+extern "C" fn did_finish_launching_with_options(
     obj: &amp;mut Object,
     _: Sel,
     _: *mut Object,
@@ -398,18 +406,18 @@ extern &quot;C&quot; fn did_finish_launching_with_options(
         let _: () = msg_send![win, makeKeyAndVisible];
         let white: *mut Object = msg_send![class!(UIColor), whiteColor];
         let _: () = msg_send![win, setBackgroundColor: white];
-        obj.set_ivar(&quot;window&quot;, win as usize);
+        obj.set_ivar("window", win as usize);
     }
     YES
 }
 
-extern &quot;C&quot; fn did_load(obj: &amp;mut Object, _: Sel) {
+extern "C" fn did_load(obj: &amp;mut Object, _: Sel) {
     unsafe {
         let _: () = msg_send![super(obj, class!(UIViewController)), viewDidLoad];
         let view: *mut Object = msg_send![&amp;*obj, view];
         let btn: *mut Object = msg_send![class!(UIButton), buttonWithType:0];
         let _: () = msg_send![btn, setFrame:Frame(100., 100., 80., 30.)];
-        let title: *mut Object = msg_send![class!(NSString), stringWithUTF8String:&quot;Click\0&quot;.as_ptr()];
+        let title: *mut Object = msg_send![class!(NSString), stringWithUTF8String:"Click\0".as_ptr()];
         let _: () = msg_send![btn, setTitle:title forState:0];
         let blue: *mut Object = msg_send![class!(UIColor), blueColor];
         let _: () = msg_send![btn, setTitleColor:blue forState:0];
@@ -418,42 +426,42 @@ extern &quot;C&quot; fn did_load(obj: &amp;mut Object, _: Sel) {
     }
 }
 
-extern &quot;C&quot; fn clicked(_obj: &amp;mut Object, _: Sel) {
-    println!(&quot;clicked&quot;);
+extern "C" fn clicked(_obj: &amp;mut Object, _: Sel) {
+    println!("clicked");
 }
 
 fn main() {
     unsafe {
         let ui_responder_cls = class!(UIResponder);
-        let mut app_delegate_cls = ClassDecl::new(&quot;AppDelegate&quot;, ui_responder_cls).unwrap();
+        let mut app_delegate_cls = ClassDecl::new("AppDelegate", ui_responder_cls).unwrap();
 
         app_delegate_cls.add_method(
             sel!(application:didFinishLaunchingWithOptions:),
             did_finish_launching_with_options
-                as extern &quot;C&quot; fn(&amp;mut Object, Sel, *mut Object, *mut Object) -&gt; BOOL,
+                as extern "C" fn(&amp;mut Object, Sel, *mut Object, *mut Object) -&gt; BOOL,
         );
 
-        app_delegate_cls.add_ivar::&lt;usize&gt;(&quot;window&quot;);
+        app_delegate_cls.add_ivar::&lt;usize&gt;("window");
 
         app_delegate_cls.register();
 
         let ui_view_controller_cls = class!(UIViewController);
         let mut view_controller_cls =
-            ClassDecl::new(&quot;ViewController&quot;, ui_view_controller_cls).unwrap();
+            ClassDecl::new("ViewController", ui_view_controller_cls).unwrap();
 
         view_controller_cls.add_method(
             sel!(viewDidLoad),
-            did_load as extern &quot;C&quot; fn(&amp;mut Object, Sel),
+            did_load as extern "C" fn(&amp;mut Object, Sel),
         );
 
-        view_controller_cls.add_method(sel!(clicked), clicked as extern &quot;C&quot; fn(&amp;mut Object, Sel));
+        view_controller_cls.add_method(sel!(clicked), clicked as extern "C" fn(&amp;mut Object, Sel));
 
         view_controller_cls.register();
 
         let name: *mut Object =
-            msg_send![class!(NSString), stringWithUTF8String:&quot;AppDelegate\0&quot;.as_ptr()];
+            msg_send![class!(NSString), stringWithUTF8String:"AppDelegate\0".as_ptr()];
 
-        extern &quot;C&quot; {
+        extern "C" {
             fn UIApplicationMain(
                 argc: i32,
                 argv: *mut *mut c_char,
@@ -475,11 +483,11 @@ fn main() {
 </code></pre>
 <p>Similarly, you can use cargo-bundle, and define bundle metadata in your Cargo.toml:</p>
 <pre><code class="language-toml">[package.metadata.bundle]
-name = &quot;myapp&quot;
-identifier = &quot;com.neurosrg.myapp&quot;
-category = &quot;Education&quot;
-short_description = &quot;A pure rust app&quot;
-long_description = &quot;A pure rust app&quot;
+name = "myapp"
+identifier = "com.neurosrg.myapp"
+category = "Education"
+short_description = "A pure rust app"
+long_description = "A pure rust app"
 </code></pre>
 <p>And with cargo-bundle:</p>
 <pre><code>cargo bundle --target x86_64-apple-ios
@@ -488,20 +496,20 @@ xcrun simctl install booted target/x86_64-apple-ios/debug/bundle/ios/pure.app
 <p>A nice thing about cargo-bundle, even though its iOS bundle support is experimental, is that it's still faster than xcodebuild!</p>
 <p>Back to our Rust example, it's not as verbose as the pure C/C++ version, this is thanks to the <a href="https://github.com/SSheldon/rust-objc">objc</a> crate doing a lot of the heavy lifting such as encoding and other niceties, it requires however explicit types when using the msg_send! macro. Also returning structs works with msg_send, whereas in C/C++, you'd want to use objc_msgSend_stret(). Although you don't see a lot of quotes like in the C++ version, it's still a stringly-typed api, also meaning a wrong typo won't be caught at compile time, instead it'll throw a runtime exception. One downside is that since Rust isn't an officially-supported language by Apple, projects like the objc crate and others wrapping other Apple frameworks are made by members of the Rust community, and can fall into issues like lack of maintainance (which appears to have happened to the objc crate).</p>
 <h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
-<p>C/C++/Rust can easily target the Objective-C runtime, less so when it comes to targetting Swift, but that's not as important. C/C++ have an extra advantage in that they're officially supported by Apple, for example you can create an XCode project and create both C/C++ source files and headers, and you'll get automatic integration in the build in addition to code completion etc. The system compiler on Apple is clang (AppleClang) which is a C/C++/ObjC/ObjCpp compiler. The default buildsystem, xcodebuild, supports creating universal binaries out of the box, so does CMake, the de-facto C++ buildsystem (which is actually unsupported by XCode, however it can generate xcodeproj files). Rust comes with its own buildsystem/package manager, Cargo. Although Cargo is great, like Rust, it's not directly supported in XCode. Also as the time of writing this, it can't generate MacOS or iOS bundles, nor can it produce universal binaries. Luckily, you can use other packages like cargo-bundle and cargo-lipo to create your bundles and universal libraries. Using the ObjC runtime functions like objc_msgSend/msg_send, apart from allow a develper to write in their preferred programming language, add no advantage whatsoever to the codebase. When it comes to api, it's exceedingly verbose, it's stringly-typed (like the JNI), most of it is unsafe to use (when it comes to Rust) that it's just more convenient to wrap it all in <code>unsafe</code>. Essentially, writing Objective-C/C++ can be the least painful path.  </p>
+<p>C/C++/Rust can easily target the Objective-C runtime, less so when it comes to targetting Swift, but that's not as important. C/C++ have an extra advantage in that they're officially supported by Apple, for example you can create an XCode project and create both C/C++ source files and headers, and you'll get automatic integration in the build in addition to code completion etc. The system compiler on Apple is clang (AppleClang) which is a C/C++/ObjC/ObjCpp compiler. The default buildsystem, xcodebuild, supports creating universal binaries out of the box, so does CMake, the de-facto C++ buildsystem (which is actually unsupported by XCode, however it can generate xcodeproj files). Rust comes with its own buildsystem/package manager, Cargo. Although Cargo is great, like Rust, it's not directly supported in XCode. Also as the time of writing this, it can't generate MacOS or iOS bundles, nor can it produce universal binaries. Luckily, you can use other packages like cargo-bundle and cargo-lipo to create your bundles and universal libraries. Using the ObjC runtime functions like objc_msgSend/msg_send, apart from allow a develper to write in their preferred programming language, add no advantage whatsoever to the codebase. When it comes to api, it's exceedingly verbose, it's stringly-typed (like the JNI), most of it is unsafe to use (when it comes to Rust) that it's just more convenient to wrap it all in <code>unsafe</code>. Essentially, writing Objective-C/C++ can be the least painful path.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rust-vs-c-for-frontend-web-wasm-programming"><a class="header" href="#rust-vs-c-for-frontend-web-wasm-programming">Rust vs C++ for frontend web (wasm) programming</a></h1>
 <p>Date: 2022-7-26</p>
 <p>Several languages can now target wasm, I'll focus on Rust and C++ as these seem to have the most mature ecosystems, with C++'s Emscripten toolchain and Rust's wasm-bindgen (web-sys, js-sys etc) ecosystem.
-Keep in mind that both languages leverage LLVM's ability to generate wasm. Wasm itself has no direct access to the DOM, as such DOM calls pass through javascript. </p>
+Keep in mind that both languages leverage LLVM's ability to generate wasm. Wasm itself has no direct access to the DOM, as such DOM calls pass through javascript.</p>
 <p>Basically when using a language, you're buying into the ecosystem. You can still target Emscripten using Rust via the wasm32-unknown-emscripten target. However it would require that the LLVM version of Rust you're using and the LLVM version Emscripten is using are compatible.
 Similarly, you can invoke clang directly with the <code>--target=wasm32</code> flag (requires wasm-ld and the std headers), and it should output wasm. However, the non-emscripten wasm ecosystem is barren!</p>
 <p>Advantages of using C++:</p>
 <ul>
-<li>Emscripten's headers are C/C++ headers. </li>
+<li>Emscripten's headers are C/C++ headers.</li>
 <li>Emscripten supports CMake (the de jour build system for C++, via both emcmake and a CMake toolchain file). However, the docs refer to raw calls of emcc/em++, which can be difficult to translate to proper CMake scripts:</li>
 </ul>
 <pre><code class="language-cmake">add_executable(index src/main.cpp)
-set_target_properties(index PROPERTIES SUFFIX .html LINK_FLAGS &quot;-s WASM=1 -s EVAL_CTORS=2 --bind --shell-file ${CMAKE_CURRENT_LIST_DIR}/my_shell.html&quot;)
+set_target_properties(index PROPERTIES SUFFIX .html LINK_FLAGS "-s WASM=1 -s EVAL_CTORS=2 --bind --shell-file ${CMAKE_CURRENT_LIST_DIR}/my_shell.html")
 </code></pre>
 <ul>
 <li>Emscripten provides Boost, SDL and OpenGL/WebGL support out of the box.</li>
@@ -509,7 +517,7 @@ set_target_properties(index PROPERTIES SUFFIX .html LINK_FLAGS &quot;-s WASM=1 -
 <li>vcpkg (a C/C++ package manager) supports building packages for emscripten.</li>
 <li>Qt supports Emscripten (buggy).</li>
 <li>Emscripten provides a virtual file system that simulates the local file system, std::filesystem works out of the box.</li>
-<li>Emscripten supports multithreading. </li>
+<li>Emscripten supports multithreading.</li>
 <li>The above means that an existing native game leveraging SDL +/- OpenGL can be recompiled using emscripten, with probably minor tweaks to the build script (and event-loop), and things should run.</li>
 <li>Emscripten bundles the binaryen toolchain as well. For example, compiling with optimizations will automatically run wasm-opt.</li>
 </ul>
@@ -525,11 +533,11 @@ set_target_properties(index PROPERTIES SUFFIX .html LINK_FLAGS &quot;-s WASM=1 -
 using emscripten::val;
 
 int main() {
-    auto doc = val::global(&quot;document&quot;);
-    auto body = doc.call&lt;val&gt;(&quot;getElementsByTagName&quot;, val(&quot;body&quot;))[0];
-    auto btn = doc.call&lt;val&gt;(&quot;createElement&quot;, val(&quot;BUTTON&quot;));
-    body.call&lt;void&gt;(&quot;appendChild&quot;, btn);
-    btn.set(&quot;textContent&quot;, &quot;Click&quot;);
+    auto doc = val::global("document");
+    auto body = doc.call&lt;val&gt;("getElementsByTagName", val("body"))[0];
+    auto btn = doc.call&lt;val&gt;("createElement", val("BUTTON"));
+    body.call&lt;void&gt;("appendChild", btn);
+    btn.set("textContent", "Click");
 }
 </code></pre>
 <p>As you can probably guess, these DOM calls are stingly-typed and aren't checked at compile time, if you pass a wrong type or even a typo, it would error on runtime.</p>
@@ -548,9 +556,9 @@ fn main() {
     let win = web_sys::window().unwrap();
     let doc = win.document().unwrap();
     let body = doc.body().unwrap();
-    let btn = doc.create_element(&quot;BUTTON&quot;).unwrap();
+    let btn = doc.create_element("BUTTON").unwrap();
     body.append_child(&amp;elem).unwrap();
-    btn.set_text_content(Some(&quot;Click&quot;));
+    btn.set_text_content(Some("Click"));
 }</code></pre></pre>
 <p>Disadvantages of using Rust:</p>
 <ul>
@@ -565,11 +573,11 @@ fn main() {
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fltk-rs-in-2022"><a class="header" href="#fltk-rs-in-2022">fltk-rs in 2022</a></h1>
 <p>Date: 2023-01-02</p>
 <h2 id="looking-back"><a class="header" href="#looking-back">Looking back</a></h2>
-<p>Looking back into 2022, <a href="https://github.com/fltk-rs/fltk-rs">fltk-rs</a> saw its 1.0 release in April 2022. On October 2022, the project finished its 3rd year. 2022 also saw the publication of the fltk-rs <a href="https://fltk-rs.github.io/fltk-book/">book</a>. And a rewrite of <a href="https://github.com/fltk-rs/fl2rust">fl2rust</a>, which is a FLUID to Rust transpiler. Fluid is a RAD FLTK application which is similar to Gtk's glade and QtCreator. </p>
-<p>Looking back further, fltk-rs was started for a specific requirement, to easily deploy statically-linked gui applications on Windows 7 PCs in my university hospital's simulation center, it also had to be crossplatform for those using mac laptops! </p>
+<p>Looking back into 2022, <a href="https://github.com/fltk-rs/fltk-rs">fltk-rs</a> saw its 1.0 release in April 2022. On October 2022, the project finished its 3rd year. 2022 also saw the publication of the fltk-rs <a href="https://fltk-rs.github.io/fltk-book/">book</a>. And a rewrite of <a href="https://github.com/fltk-rs/fl2rust">fl2rust</a>, which is a FLUID to Rust transpiler. Fluid is a RAD FLTK application which is similar to Gtk's glade and QtCreator.</p>
+<p>Looking back further, fltk-rs was started for a specific requirement, to easily deploy statically-linked gui applications on Windows 7 PCs in my university hospital's simulation center, it also had to be crossplatform for those using mac laptops!</p>
 <p>At the time, most pure Rust toolkits lacked many functionalities I needed (menus, tables, multiline text input, custom graph drawing, multiwindows ...etc), and I was just starting to use Rust so I felt incapable of contributing to the budding gui ecosystem. Gtk and Qt bindings existed at the time, but required dynamic linking. It was also during covid lockdown, so I had some extra time since teaching duties and elective cases decreased. So instead of just writing the project in another language, I started learning Rust and applying that knowledge into creating the bindings to FLTK.</p>
 <p>That's to say that as a novice, I made many mistakes, most of which I consider fixed with the 1.0 release, however, there are some which were pointed out later, namely the timeout api, escpecially when it comes to cancellation. The older functions were deprecated, but the newer ones like <code>app::add_timeout3</code> and <code>app::remove_timeout3</code> stick out like a sore thumb.</p>
-<p>Maybe releasing a 1.0 was a bit hasty. It taught me however more things to mitigate api breakage. Another aspect was targetting FLTK 1.4, which if you don't know is a yet to be released version of FLTK. That means it's a moving target. And even though FLTK is considered quite conservative when it comes to C++ codebases (it's still using C++98 and without the std library!), it's actively developend and several of the added functionality have changed their function signatures, which required some workarounds in fltk-rs. Some things were out of my hand, such as the upstream removal of the FLTK android driver since it was considered experimental and difficult to integrate on the C++ side, especially in preparation for the 1.4 release, so to avoid managing forks and such, it was subsequently removed from fltk-rs. </p>
+<p>Maybe releasing a 1.0 was a bit hasty. It taught me however more things to mitigate api breakage. Another aspect was targetting FLTK 1.4, which if you don't know is a yet to be released version of FLTK. That means it's a moving target. And even though FLTK is considered quite conservative when it comes to C++ codebases (it's still using C++98 and without the std library!), it's actively developend and several of the added functionality have changed their function signatures, which required some workarounds in fltk-rs. Some things were out of my hand, such as the upstream removal of the FLTK android driver since it was considered experimental and difficult to integrate on the C++ side, especially in preparation for the 1.4 release, so to avoid managing forks and such, it was subsequently removed from fltk-rs.</p>
 <p>On the other hand, FLTK itself had nice improvements. Drawing on Linux/BSD now uses Cairo for anti-aliased drawing, and on Windows, it uses GDI+ to the same effect. A wayland backend was added which allows targetting wayland directly, i.e. not through xwayland. And the OpenGL backend was extended to allow drawing widgets using OpenGL. That means GlWindow can now display widgets, if you need hardware acceleration or need to display widgets on top of 3D graphics!</p>
 <h2 id="looking-forward"><a class="header" href="#looking-forward">Looking forward</a></h2>
 <p>The current plan is that once FLTK 1.4 is shipped, to release the last version of fltk-rs version 1, and continue working on fltk-rs 2.0 (work on that has started in version2 branch in the fltk-rs repo). This would be using a 0.20.x version (if possible), until an FLTK 1.5 is released, and only then to release version 2.</p>
@@ -578,8 +586,8 @@ fn main() {
 <p>I'm already excited to see the ecosystem maturing. If you frequent the Rust subreddit, you would notice a recurring question on what gui framework to use, and there would always be a few who would say that Rust isn't gui yet. Maybe not a few years back, but if you compare the situation to other programming languages (apart from C/C++), Rust already provides many gui crates that you can already use.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fibonacci-benchmarks-between-js-wasm-and-server"><a class="header" href="#fibonacci-benchmarks-between-js-wasm-and-server">Fibonacci benchmarks between js, wasm and server</a></h1>
 <h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
-<p>WebAssembly can't directly access the DOM, it has to call javascript to do so and is known to incur a cost when manipulating the DOM. How about raw computation, how does wasm compare to server-side computation or client-side javascript computation?</p>
-<p>The source code for the benchmark can be found in https://github.com/MoAlyousef/fib-bench, along with instructions on how to build it.</p>
+<p>WebAssembly can't directly access the DOM, it has to call javascript and is known to incur a cost when doing so. What about raw computation, how does wasm compare to server-side computation or client-side javascript computation? And when is it favorable to use it?</p>
+<p>The source code for the benchmark can be found <a href="https://github.com/MoAlyousef/fib-bench">here</a>, along with instructions on how to build it.</p>
 <h2 id="results"><a class="header" href="#results">Results</a></h2>
 <p>With an input value of 1:</p>
 <ul>
@@ -593,7 +601,7 @@ fn main() {
 <li>wasmtime: 8184.0751953125 ms</li>
 <li>jstime: 15975.77490234375 ms</li>
 </ul>
-<p>The results should appear in the browser's dev console. </p>
+<p>The results should appear in the browser's dev console.</p>
 <p>This was run on a windows machine running wsl2 x86_64 GNU/Linux.
 Specs:</p>
 <ul>
@@ -606,13 +614,336 @@ Specs:</p>
 </ul>
 <p>Rust version: 1.71 stable.
 Google chrome: Version 119.0.6045.107 (Official Build) (64-bit)</p>
+<p>wasm-opt -O3 didn't improve performance by much. It did reduce the generated wasm size by 30 percent however.</p>
 <h2 id="conclusion-2"><a class="header" href="#conclusion-2">Conclusion</a></h2>
 <ul>
-<li>wasm-opt -O3 didn't improve performance by much. It did reduce the generated wasm size by 30 percent however.</li>
-<li>Calling server-side computations requires a network call and marshalling data to and from the server, which incurs an unnecessary cost when the computation is trivial. In such cases javascript and wasm offer close enough computation cost. A wasm function call cost, even though minor, can be twice as slow as the javascript one.</li>
-<li>For intensive computations, the server cost can be considered negligible since native computation remains faster than wasm. Even then, client-side javascript is only twice as slow as wasm!</li>
-<li>Wasm on the browser, to me, makes sense when wanting to target the web using a different language than javascript. Although I'm no fan of js, js browser engines do a good job at optimizing it. However other languages bring other advantages to the table, either in language merit or ecosystem, and with wasm, these can be used in browsers. It also makes sense if you're serving static web pages and not handling (or can't handle) post requrests, or want to reduce server computations.</li>
+<li>Performing server-side computations requires a network call and marshalling data to and from the server, which incurs an unnecessary cost when the computation is trivial. In such cases javascript and wasm offer a close enough computation cost. A wasm function call can be twice as slow as the javascript one when having to manipulate the DOM.</li>
+<li>For intensive computations, the server cost can be considered negligible since native computation remains faster than both wasm and js. Even then, client-side javascript is only twice as slow as wasm!</li>
+<li>Wasm on the browser, to me, makes sense when wanting to target the web using a different language than javascript. Although I'm no fan of js, js browser engines do a good job at optimizing it. However other languages do bring other advantages to the table, either in language merit or ecosystem. It also makes sense if you're serving static web pages or SPA's and not handling (or can't handle) post requrests, or want to reduce server computations or avoid network issues.</li>
 </ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="the-wasm-component-model-isnt-real-it-cant-hurt-you"><a class="header" href="#the-wasm-component-model-isnt-real-it-cant-hurt-you">The wasm component model isn't real, it can't hurt you!</a></h1>
+<p>Well obviously it exists. I’ll admit the meme-style title is click-bait, but it kinda fits. Browsers and javascript runtimes don't support it (yet) and it's still a <a href="https://github.com/WebAssembly/proposals?tab=readme-ov-file#phase-1---feature-proposal-cg">Phase 1 proposal</a>.</p>
+<p>However, where wasi is concerned, it appears to be officially endorsed. The <a href="https://github.com/WebAssembly/wasi-sdk">wasi-sdk</a> (under the official WebAssembly org) will generate a wasm component when building a C/C++ binary targeting wasm32-wasip2. The Rust toolchain wasm32-wasip2 target will similarly generate a wasm component. The wasm-component-ld (wrapper around wasm-ld) is automatically run on the generated wasm core module (unless you opt out by passing the <code>--skip-wit-component</code> linker flag).</p>
+<p>I had to recently port a library which supported freestanding wasm32, wasip1 and emscripten to wasip2, without having understood the component model, and that was a painful experience. So this post aims to shed light into what I learned in the process.
+By the way, LLMs didn't help much. I'm guessing since it's all too new and there aren't many resources on the subject.</p>
+<p>If you're new to the wasm ecosystem, you might be wondering how a wasm component differs from whatever was before it, which was a core module. You can read more about it <a href="https://component-model.bytecodealliance.org/design/why-component-model.html">here</a>.Without going into much detail on the differences, core modules limited data exchange to basic types, namely integers and floats. If you needed to pass a string from a core module to javascript for example, you would pass the address (an integer) of that string in wasm's linear memory, that along with its length, unless nul-terminated in which case you would handle that on the javascript side. The component model aims at remedying this by allowing the exchange of higher level types without concerning yourself with what's in memory or __indirect_function_table of your wasm binary. As such these things are hidden from you, in exchange for a higher level abstraction. You also no longer have to fiddle with a myriad of linker flags like <code>--import-memory --export-memory --export-table --export-dynamic --export-if-defined=whatever</code>.
+This is done by declaring your types and interfaces in WIT (Wasm Interface Type language) in wit files in your wit directory!</p>
+<p>The idea is that higher-level wit interfaces will be distributed, devs will program against the APIs they declare, from any programming language which supports the component model (currently 8 languages), without meddling with low-level details or a C ABI. Components should give us better modularity, language interop and portability across languages and runtimes.</p>
+<p>Before going into that, lets see how things worked prior to the component model.</p>
+<h2 id="before-components"><a class="header" href="#before-components">Before components</a></h2>
+<h3 id="importing-an-extern-function-from-javascript"><a class="header" href="#importing-an-extern-function-from-javascript">Importing an extern function (from javascript)</a></h3>
+<p>Let's say you wanted to console.log a Rust string:</p>
+<pre><pre class="playground"><code class="language-rust">unsafe extern "C" {
+    fn console_log_string(s: *const u8, len: usize);
+}
+
+fn main() {
+    let s = "Hello, world!";
+    unsafe {
+        console_log_string(s.as_ptr(), s.len());
+    }
+}</code></pre></pre>
+<p>On the javascript side, you would define <code>console_log_string</code>:</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;script&gt;
+        window.onload = async () =&gt; {
+            const response = await fetch("./target/wasm32-unknown-unknown/debug/blog.wasm");
+            const { instance } = await WebAssembly.instantiateStreaming(response, {
+                env: {
+                    console_log_string: (ptr, len) =&gt; {
+                        const memory = new Uint8Array(instance.exports.memory.buffer, ptr, len);
+                        // Typically you would instantiate your TextDecoder once instead of with every call
+                        const string = new TextDecoder('utf-8').decode(memory);
+                        console.log(string);
+                    }
+                }
+            });
+            instance.exports.main();
+        };
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>When targeting a javascript runtime you would just do away with the html part and window.onload.</p>
+<p>The wasip1 model is practically the same, with a slight difference in that you would pass a <code>wasi_snapshot_preview1</code> object inside your importObject (alongside <code>env</code>). An npm library that I would recommend is <a href="https://github.com/bjorn3/browser_wasi_shim">@bjorn3/browser_wasi_shim</a>:</p>
+<pre><code class="language-javascript">    let wasi = new WASI([], [], []);
+    const response = await fetch("./target/wasm32-wasip1/debug/blog.wasm");
+    const { instance } = await WebAssembly.instantiateStreaming(response, {
+        wasi_snapshot_preview1: wasi.wasiImport
+        env: {
+            console_log_string: (ptr, len) =&gt; {
+                const memory = new Uint8Array(instance.exports.memory.buffer, ptr, len);
+                const string = new TextDecoder('utf-8').decode(memory);
+                console.log(string);
+            }
+        }
+    });
+</code></pre>
+<p>Similarly with emscripten, you would typically define the function in your C/C++ source code using the EM_JS macro:</p>
+<pre><code class="language-cpp">    EM_JS(void, console_log_string, (const char *ptr, size_t len), {
+        const str = UTF8ToString(ptr, len);
+        console.log(str);
+    });
+</code></pre>
+<p>You can also pass the definition of <code>console_log_string</code> if you build with the shell option <code>-sMODULARIZE</code>:</p>
+<pre><code class="language-javascript">    import initModule from "./bin/main.mjs";
+    window.onload = async () =&gt; {
+        const mymain = await initModule({
+            console_log_string: /* definition goes here */
+        });
+    };
+</code></pre>
+<h3 id="exporting-a-function-to-javascript"><a class="header" href="#exporting-a-function-to-javascript">Exporting a function (to javascript)</a></h3>
+<p>Let's say we want to use a native function in our javascript. Before the component model, similarly to how we imported the function, we'll have to export native functions as extern "C" (or in the case of Zig, extern "env") function for it to be callable from javascript.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[unsafe(no_mangle)]
+extern "C" fn my_strlen(s: *const u8) -&gt; usize {
+    unsafe {
+        let mut len = 0;
+        while *s.add(len) != 0 {
+            len += 1;
+        }
+        len
+    }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn greet(s: *const u8, len: usize) -&gt; *const u8 {
+    unsafe {
+        let greeting = format!("Hello {}\0", 
+            std::str::from_utf8(std::slice::from_raw_parts(s, len)).unwrap()
+        );
+        let ptr = std::alloc::alloc(std::alloc::Layout::from_size_align(greeting.len(), 1).unwrap());
+        std::ptr::copy_nonoverlapping(greeting.as_ptr(), ptr, greeting.len());
+        ptr
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>In emscripten you would use the EMSCRIPTEN_KEEPALIVE macro along with specifying its an extern "C" function.</p>
+<p>Which can be used from js:</p>
+<pre><code class="language-javascript">    const enc = new TextEncoder();
+    const dec = new TextDecoder("utf-8");
+    const txt = enc.encode("World!");
+    // __rust_alloc &amp; __rust_dealloc are automatically exported in wasm32 core module rust binaries
+    const ptr = instance.exports.__rust_alloc(txt.length, 1);
+    new Uint8Array(instance.exports.memory.buffer).set(txt, ptr);
+    const msg = instance.exports.greet(ptr, txt.length);
+    let len = instance.exports.my_strlen(msg);
+    console.log(dec.decode(new Uint8Array(instance.exports.memory.buffer, msg, len)));
+    instance.exports.__rust_dealloc(ptr, len, 1);
+</code></pre>
+<h2 id="with-components"><a class="header" href="#with-components">With components</a></h2>
+<h3 id="importing-an-extern-function-from-javascript-1"><a class="header" href="#importing-an-extern-function-from-javascript-1">Importing an extern function (from javascript)</a></h3>
+<p>Now when it comes to wasip2, unless you pass the <code>--skip-wit-component</code> flag to the linker (wasm-component-ld), you would end up with a wasm component. So how can we declare our <code>console_log_string</code> function for usage within Rust, and how can we define it in javascript. Well we will have to do it in WIT. Luckily for simple cases, you can use a macro <code>wit_bindgen::generate!</code> if you add wit-bindgen as a dependency to your project. And since we're building a runnable program, we'll also use the <code>wasip2</code> crate:</p>
+<pre><code class="language-toml">[package]
+name = "blog"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wit-bindgen = "0.44"
+wasip2 = "1"
+</code></pre>
+<p>For C/C++ code, you would have to run <code>wit-bindgen</code> manually or as part of your build via CMake for example. It will generate a header, source file and an object file!
+These should be added to your build, unless you're creating a library, in which case the object file should be exposed as a target (in CMake parlance!), otherwise you risk losing it in the final link step. That's actually easier than telling your dependents to manually pass --whole-archive/--no-whole-archive to the linker. Exposing the object as a target can be easily done in CMake:</p>
+<pre><code class="language-cmake">  # code from the library I'm working on!
+  # can be used by consumers using target_link_libraries(myapp PRIVATE emcore::component_type)
+  install(FILES ${CMAKE_CURRENT_LIST_DIR}/src/env_component_type.o
+          DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+  add_library(emcore_component_type INTERFACE)
+  target_link_libraries(emcore_component_type INTERFACE
+    "$&lt;BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/env_component_type.o&gt;"
+    "$&lt;INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/env_component_type.o&gt;"
+  )
+  add_library(emcore::component_type ALIAS emcore_component_type)
+  install(TARGETS emcore_component_type EXPORT emcoreTargets)
+</code></pre>
+<p>Back to Rust, notice in the above Cargo.toml how we change this from an executable binary to a cdylib. That's because runnable wasip2 components (or those using the <code>-mexec-model=command</code> in C/C++), would define a <code>wasi:cli/run</code> interface:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>wit_bindgen::generate!({inline: "
+package my:app@0.1.0;
+
+interface logger {
+    console-log-string: func(s: string);
+}
+
+world app {
+    import logger;
+}
+"});
+
+struct App;
+
+impl wasip2::exports::cli::run::Guest for App {
+    fn run() -&gt; Result&lt;(), ()&gt; {
+        crate::my::app::logger::console_log_string("Hello, world!");
+        Ok(())
+    }
+}
+
+wasip2::cli::command::export!(App);
+<span class="boring">}</span></code></pre></pre>
+<p>Since browsers don't support wasip2 as of yet, we can use jco by the bytecodealliance org to generate the necessary core modules and javascript glue code. After installing jco, we run the <code>transpile</code> command:</p>
+<pre><code class="language-bash">npm i --save-dev @bytecodealliance/jco
+npx jco transpile ./target/wasm32-wasip2/release/blog.wasm -O -o bin/app --instantiation async --no-nodejs-compat --tla-compat --no-typescript
+</code></pre>
+<p>The <code>-O</code> flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format. More on that later!</p>
+<p>The transpile step will generate a directory <code>bin/app</code> with the generated core wasm modules and js glue files.
+We can then instantiate the generated wasm modules, then pass our definition of console-log-string as part of my:app/logger interface:</p>
+<pre><code class="language-javascript">import { WASIShim } from "@bytecodealliance/preview2-shim/instantiation";
+// generated by jco
+import { instantiate as initApp } from "../bin/app/blog.js";
+
+async function main() {
+  const getAppCore = async (p) =&gt; {
+    const bytes = await fetch(
+      new URL(`../bin/app/${p}`, import.meta.url)
+    );
+    return WebAssembly.compileStreaming(bytes);
+  };
+
+  const wasiShim = new WASIShim({});
+  const wasi = wasiShim.getImportObject();
+
+  const app = await initApp(getAppCore, {
+    ...wasi,
+    "my:app/logger": {
+      consoleLogString: (s) =&gt; {
+        console.log(s);
+      },
+    },
+  });
+  app.run.run();
+}
+
+await main();
+</code></pre>
+<p>The above code requires a bundler like webpack to resolve the node_modules paths etc.</p>
+<h3 id="exporting-a-function-to-javascript-1"><a class="header" href="#exporting-a-function-to-javascript-1">Exporting a function (to javascript)</a></h3>
+<p>With the component model, we would simply define the function and export it:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>wit_bindgen::generate!({inline: "
+package my:app@0.1.0;
+
+interface greeter {
+    greet: func(s: string) -&gt; string;
+}
+
+world app {
+    export greeter;
+}
+"});
+
+struct App;
+
+impl crate::exports::my::app::greeter::Guest for App {
+    fn greet(s: String) -&gt; String {
+        format!("Hello, {}!", s)
+    }
+}
+
+export!(App);
+<span class="boring">}</span></code></pre></pre>
+<p>And we can use it from our javascript:</p>
+<pre><code class="language-javascript">import { WASIShim } from "@bytecodealliance/preview2-shim/instantiation";
+// generated by jco
+import { instantiate as initApp } from "../bin/app/blog.js";
+
+async function main() {
+  const getAppCore = async (p) =&gt; {
+    const bytes = await fetch(
+      new URL(`../bin/app/${p}`, import.meta.url)
+    );
+    return WebAssembly.compileStreaming(bytes);
+  };
+
+  const wasiShim = new WASIShim({});
+  const wasi = wasiShim.getImportObject();
+
+  const app = await initApp(getAppCore, {
+    ...wasi,
+  });
+  console.log(app.greeter.greet("World!"));
+}
+
+await main();
+</code></pre>
+<p>Actually even the instantiation code is simpler since we don't import any javascript exports, but I went for the manual instiation code for symmetry with the previous section!
+For example if you don't pass --instantion:</p>
+<pre><code class="language-bash"># no --instantiation
+npx jco transpile ./target/wasm32-wasip2/release/blog.wasm -O -o bin/app --no-nodejs-compat --tla-compat --no-typescript
+</code></pre>
+<p>You would load using:</p>
+<pre><code class="language-javascript">import { $init, greeter } from "../bin/app/blog.js";
+
+async function main() {
+  await $init;
+  console.log(greeter.greet("World!"));
+}
+
+await main();
+</code></pre>
+<h2 id="downsides"><a class="header" href="#downsides">Downsides</a></h2>
+<p>I like the idea behind the component model and would like for it to succeed. It would greatly simplify working with wasm. However it's not all moonlight and roses. Especially for those of us more interested in wasm in the browser.</p>
+<ul>
+<li>
+<p>Currently the binaries are larger when targeting wasip2, but that's irrespective of whether we're building a wasip2 core module or component.</p>
+</li>
+<li>
+<p>It's unclear whether browsers will support the component model if and when wasi_snapshot_preview2 lands. That means we might still need the jco-transpile step for longer.</p>
+</li>
+<li>
+<p>No centralised wit registry as of yet. wit files need to be vendored in a wit/deps directory or pulled via wkg from non-centralized registries.</p>
+</li>
+<li>
+<p>Things still haven't settled so interfaces are prone to changes.</p>
+</li>
+<li>
+<p>Outside the browser, support is fragmentary and lagging across most wasm runtimes. Currently only wasmtime supports it.</p>
+</li>
+<li>
+<p>Adding wit interfaces might feel like effort duplication.</p>
+</li>
+<li>
+<p>Tools galore! Working with components requires more tools than what you would typically require from your default toolchain:</p>
+<ul>
+<li>wit-bindgen</li>
+<li>jco</li>
+<li>wasm-tools</li>
+<li>wac</li>
+<li>wkg</li>
+</ul>
+</li>
+<li>
+<p>Ye olde tools don't work (well) with wasm components: Binaryen, (wasm)objdump, (wasm)strip.</p>
+</li>
+<li>
+<p>Linking components isn't done with your usual linker, you can use wac to compose and plug components.</p>
+</li>
+<li>
+<p>Some of the above mentioned tools are early in development and are not yet stable.</p>
+</li>
+<li>
+<p>Debugging components can be a bit difficult. Lots of trampolines!!</p>
+</li>
+</ul>
+<h2 id="conclusion-3"><a class="header" href="#conclusion-3">Conclusion</a></h2>
+<p>I like the value proposition of the component model, however, things are still cooking. Starting out, you might run into a steep learning curve, mostly because it's different from what you might be used to. WIT isn't difficult to learn. The tooling in my opinion needs to become more streamlined and part of the toolchain.
+The bigger picture however, is that once the component model is widely supported, it should make wasm programming much easier since you're programming against a higher level abstraction, while previously you had to deal with lower level C-like interfaces. The underlying language would be irrelevant to developers consuming those interfaces. WIT will become the new ABI.</p>
 
                     </main>
 

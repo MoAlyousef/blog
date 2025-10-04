@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -7,10 +7,10 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="favicon.svg">
         <link rel="shortcut icon" href="favicon.png">
@@ -30,15 +30,17 @@
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body>
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -60,43 +62,49 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
-            html.classList.remove('no-js')
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            html.classList.add("js");
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
+            sidebar_toggle.checked = sidebar === 'visible';
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li><li class="chapter-item expanded "><a href="WasmCompute.html" class="active"><strong aria-hidden="true">6.</strong> Fibonacci benchmarks between js, wasm and server</a></li></ol>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -146,8 +154,8 @@
                     <main>
                         <h1 id="fibonacci-benchmarks-between-js-wasm-and-server"><a class="header" href="#fibonacci-benchmarks-between-js-wasm-and-server">Fibonacci benchmarks between js, wasm and server</a></h1>
 <h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
-<p>WebAssembly can't directly access the DOM, it has to call javascript to do so and is known to incur a cost when manipulating the DOM. How about raw computation, how does wasm compare to server-side computation or client-side javascript computation?</p>
-<p>The source code for the benchmark can be found in https://github.com/MoAlyousef/fib-bench, along with instructions on how to build it.</p>
+<p>WebAssembly can't directly access the DOM, it has to call javascript and is known to incur a cost when doing so. What about raw computation, how does wasm compare to server-side computation or client-side javascript computation? And when is it favorable to use it?</p>
+<p>The source code for the benchmark can be found <a href="https://github.com/MoAlyousef/fib-bench">here</a>, along with instructions on how to build it.</p>
 <h2 id="results"><a class="header" href="#results">Results</a></h2>
 <p>With an input value of 1:</p>
 <ul>
@@ -161,7 +169,7 @@
 <li>wasmtime: 8184.0751953125 ms</li>
 <li>jstime: 15975.77490234375 ms</li>
 </ul>
-<p>The results should appear in the browser's dev console. </p>
+<p>The results should appear in the browser's dev console.</p>
 <p>This was run on a windows machine running wsl2 x86_64 GNU/Linux.
 Specs:</p>
 <ul>
@@ -174,12 +182,12 @@ Specs:</p>
 </ul>
 <p>Rust version: 1.71 stable.
 Google chrome: Version 119.0.6045.107 (Official Build) (64-bit)</p>
+<p>wasm-opt -O3 didn't improve performance by much. It did reduce the generated wasm size by 30 percent however.</p>
 <h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
 <ul>
-<li>wasm-opt -O3 didn't improve performance by much. It did reduce the generated wasm size by 30 percent however.</li>
-<li>Calling server-side computations requires a network call and marshalling data to and from the server, which incurs an unnecessary cost when the computation is trivial. In such cases javascript and wasm offer close enough computation cost. A wasm function call cost, even though minor, can be twice as slow as the javascript one.</li>
-<li>For intensive computations, the server cost can be considered negligible since native computation remains faster than wasm. Even then, client-side javascript is only twice as slow as wasm!</li>
-<li>Wasm on the browser, to me, makes sense when wanting to target the web using a different language than javascript. Although I'm no fan of js, js browser engines do a good job at optimizing it. However other languages bring other advantages to the table, either in language merit or ecosystem, and with wasm, these can be used in browsers. It also makes sense if you're serving static web pages and not handling (or can't handle) post requrests, or want to reduce server computations.</li>
+<li>Performing server-side computations requires a network call and marshalling data to and from the server, which incurs an unnecessary cost when the computation is trivial. In such cases javascript and wasm offer a close enough computation cost. A wasm function call can be twice as slow as the javascript one when having to manipulate the DOM.</li>
+<li>For intensive computations, the server cost can be considered negligible since native computation remains faster than both wasm and js. Even then, client-side javascript is only twice as slow as wasm!</li>
+<li>Wasm on the browser, to me, makes sense when wanting to target the web using a different language than javascript. Although I'm no fan of js, js browser engines do a good job at optimizing it. However other languages do bring other advantages to the table, either in language merit or ecosystem. It also makes sense if you're serving static web pages or SPA's and not handling (or can't handle) post requrests, or want to reduce server computations or avoid network issues.</li>
 </ul>
 
                     </main>
@@ -190,6 +198,9 @@ Google chrome: Version 119.0.6045.107 (Official Build) (64-bit)</p>
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
+                            <a rel="next prefetch" href="WasmCompModel.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
 
                         <div style="clear: both"></div>
                     </nav>
@@ -201,6 +212,9 @@ Google chrome: Version 119.0.6045.107 (Official Build) (64-bit)</p>
                         <i class="fa fa-angle-left"></i>
                     </a>
 
+                    <a rel="next prefetch" href="WasmCompModel.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
             </nav>
 
         </div>

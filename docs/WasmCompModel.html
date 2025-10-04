@@ -1,0 +1,523 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>The wasm component model isn&#x27;t real, it can&#x27;t hurt you! - MoAlyousef&#x27;s blog</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">MoAlyousef&#x27;s blog</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="the-wasm-component-model-isnt-real-it-cant-hurt-you"><a class="header" href="#the-wasm-component-model-isnt-real-it-cant-hurt-you">The wasm component model isn't real, it can't hurt you!</a></h1>
+<p>Well obviously it exists. I’ll admit the meme-style title is click-bait, but it kinda fits. Browsers and javascript runtimes don't support it (yet) and it's still a <a href="https://github.com/WebAssembly/proposals?tab=readme-ov-file#phase-1---feature-proposal-cg">Phase 1 proposal</a>.</p>
+<p>However, where wasi is concerned, it appears to be officially endorsed. The <a href="https://github.com/WebAssembly/wasi-sdk">wasi-sdk</a> (under the official WebAssembly org) will generate a wasm component when building a C/C++ binary targeting wasm32-wasip2. The Rust toolchain wasm32-wasip2 target will similarly generate a wasm component. The wasm-component-ld (wrapper around wasm-ld) is automatically run on the generated wasm core module (unless you opt out by passing the <code>--skip-wit-component</code> linker flag).</p>
+<p>I had to recently port a library which supported freestanding wasm32, wasip1 and emscripten to wasip2, without having understood the component model, and that was a painful experience. So this post aims to shed light into what I learned in the process.
+By the way, LLMs didn't help much. I'm guessing since it's all too new and there aren't many resources on the subject.</p>
+<p>If you're new to the wasm ecosystem, you might be wondering how a wasm component differs from whatever was before it, which was a core module. You can read more about it <a href="https://component-model.bytecodealliance.org/design/why-component-model.html">here</a>.Without going into much detail on the differences, core modules limited data exchange to basic types, namely integers and floats. If you needed to pass a string from a core module to javascript for example, you would pass the address (an integer) of that string in wasm's linear memory, that along with its length, unless nul-terminated in which case you would handle that on the javascript side. The component model aims at remedying this by allowing the exchange of higher level types without concerning yourself with what's in memory or __indirect_function_table of your wasm binary. As such these things are hidden from you, in exchange for a higher level abstraction. You also no longer have to fiddle with a myriad of linker flags like <code>--import-memory --export-memory --export-table --export-dynamic --export-if-defined=whatever</code>.
+This is done by declaring your types and interfaces in WIT (Wasm Interface Type language) in wit files in your wit directory!</p>
+<p>The idea is that higher-level wit interfaces will be distributed, devs will program against the APIs they declare, from any programming language which supports the component model (currently 8 languages), without meddling with low-level details or a C ABI. Components should give us better modularity, language interop and portability across languages and runtimes.</p>
+<p>Before going into that, lets see how things worked prior to the component model.</p>
+<h2 id="before-components"><a class="header" href="#before-components">Before components</a></h2>
+<h3 id="importing-an-extern-function-from-javascript"><a class="header" href="#importing-an-extern-function-from-javascript">Importing an extern function (from javascript)</a></h3>
+<p>Let's say you wanted to console.log a Rust string:</p>
+<pre><pre class="playground"><code class="language-rust">unsafe extern "C" {
+    fn console_log_string(s: *const u8, len: usize);
+}
+
+fn main() {
+    let s = "Hello, world!";
+    unsafe {
+        console_log_string(s.as_ptr(), s.len());
+    }
+}</code></pre></pre>
+<p>On the javascript side, you would define <code>console_log_string</code>:</p>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;script&gt;
+        window.onload = async () =&gt; {
+            const response = await fetch("./target/wasm32-unknown-unknown/debug/blog.wasm");
+            const { instance } = await WebAssembly.instantiateStreaming(response, {
+                env: {
+                    console_log_string: (ptr, len) =&gt; {
+                        const memory = new Uint8Array(instance.exports.memory.buffer, ptr, len);
+                        // Typically you would instantiate your TextDecoder once instead of with every call
+                        const string = new TextDecoder('utf-8').decode(memory);
+                        console.log(string);
+                    }
+                }
+            });
+            instance.exports.main();
+        };
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>When targeting a javascript runtime you would just do away with the html part and window.onload.</p>
+<p>The wasip1 model is practically the same, with a slight difference in that you would pass a <code>wasi_snapshot_preview1</code> object inside your importObject (alongside <code>env</code>). An npm library that I would recommend is <a href="https://github.com/bjorn3/browser_wasi_shim">@bjorn3/browser_wasi_shim</a>:</p>
+<pre><code class="language-javascript">    let wasi = new WASI([], [], []);
+    const response = await fetch("./target/wasm32-wasip1/debug/blog.wasm");
+    const { instance } = await WebAssembly.instantiateStreaming(response, {
+        wasi_snapshot_preview1: wasi.wasiImport
+        env: {
+            console_log_string: (ptr, len) =&gt; {
+                const memory = new Uint8Array(instance.exports.memory.buffer, ptr, len);
+                const string = new TextDecoder('utf-8').decode(memory);
+                console.log(string);
+            }
+        }
+    });
+</code></pre>
+<p>Similarly with emscripten, you would typically define the function in your C/C++ source code using the EM_JS macro:</p>
+<pre><code class="language-cpp">    EM_JS(void, console_log_string, (const char *ptr, size_t len), {
+        const str = UTF8ToString(ptr, len);
+        console.log(str);
+    });
+</code></pre>
+<p>You can also pass the definition of <code>console_log_string</code> if you build with the shell option <code>-sMODULARIZE</code>:</p>
+<pre><code class="language-javascript">    import initModule from "./bin/main.mjs";
+    window.onload = async () =&gt; {
+        const mymain = await initModule({
+            console_log_string: /* definition goes here */
+        });
+    };
+</code></pre>
+<h3 id="exporting-a-function-to-javascript"><a class="header" href="#exporting-a-function-to-javascript">Exporting a function (to javascript)</a></h3>
+<p>Let's say we want to use a native function in our javascript. Before the component model, similarly to how we imported the function, we'll have to export native functions as extern "C" (or in the case of Zig, extern "env") function for it to be callable from javascript.</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>#[unsafe(no_mangle)]
+extern "C" fn my_strlen(s: *const u8) -&gt; usize {
+    unsafe {
+        let mut len = 0;
+        while *s.add(len) != 0 {
+            len += 1;
+        }
+        len
+    }
+}
+
+#[unsafe(no_mangle)]
+extern "C" fn greet(s: *const u8, len: usize) -&gt; *const u8 {
+    unsafe {
+        let greeting = format!("Hello {}\0", 
+            std::str::from_utf8(std::slice::from_raw_parts(s, len)).unwrap()
+        );
+        let ptr = std::alloc::alloc(std::alloc::Layout::from_size_align(greeting.len(), 1).unwrap());
+        std::ptr::copy_nonoverlapping(greeting.as_ptr(), ptr, greeting.len());
+        ptr
+    }
+}
+<span class="boring">}</span></code></pre></pre>
+<p>In emscripten you would use the EMSCRIPTEN_KEEPALIVE macro along with specifying its an extern "C" function.</p>
+<p>Which can be used from js:</p>
+<pre><code class="language-javascript">    const enc = new TextEncoder();
+    const dec = new TextDecoder("utf-8");
+    const txt = enc.encode("World!");
+    // __rust_alloc &amp; __rust_dealloc are automatically exported in wasm32 core module rust binaries
+    const ptr = instance.exports.__rust_alloc(txt.length, 1);
+    new Uint8Array(instance.exports.memory.buffer).set(txt, ptr);
+    const msg = instance.exports.greet(ptr, txt.length);
+    let len = instance.exports.my_strlen(msg);
+    console.log(dec.decode(new Uint8Array(instance.exports.memory.buffer, msg, len)));
+    instance.exports.__rust_dealloc(ptr, len, 1);
+</code></pre>
+<h2 id="with-components"><a class="header" href="#with-components">With components</a></h2>
+<h3 id="importing-an-extern-function-from-javascript-1"><a class="header" href="#importing-an-extern-function-from-javascript-1">Importing an extern function (from javascript)</a></h3>
+<p>Now when it comes to wasip2, unless you pass the <code>--skip-wit-component</code> flag to the linker (wasm-component-ld), you would end up with a wasm component. So how can we declare our <code>console_log_string</code> function for usage within Rust, and how can we define it in javascript. Well we will have to do it in WIT. Luckily for simple cases, you can use a macro <code>wit_bindgen::generate!</code> if you add wit-bindgen as a dependency to your project. And since we're building a runnable program, we'll also use the <code>wasip2</code> crate:</p>
+<pre><code class="language-toml">[package]
+name = "blog"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wit-bindgen = "0.44"
+wasip2 = "1"
+</code></pre>
+<p>For C/C++ code, you would have to run <code>wit-bindgen</code> manually or as part of your build via CMake for example. It will generate a header, source file and an object file!
+These should be added to your build, unless you're creating a library, in which case the object file should be exposed as a target (in CMake parlance!), otherwise you risk losing it in the final link step. That's actually easier than telling your dependents to manually pass --whole-archive/--no-whole-archive to the linker. Exposing the object as a target can be easily done in CMake:</p>
+<pre><code class="language-cmake">  # code from the library I'm working on!
+  # can be used by consumers using target_link_libraries(myapp PRIVATE emcore::component_type)
+  install(FILES ${CMAKE_CURRENT_LIST_DIR}/src/env_component_type.o
+          DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+  add_library(emcore_component_type INTERFACE)
+  target_link_libraries(emcore_component_type INTERFACE
+    "$&lt;BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/src/env_component_type.o&gt;"
+    "$&lt;INSTALL_INTERFACE:${CMAKE_INSTALL_LIBDIR}/env_component_type.o&gt;"
+  )
+  add_library(emcore::component_type ALIAS emcore_component_type)
+  install(TARGETS emcore_component_type EXPORT emcoreTargets)
+</code></pre>
+<p>Back to Rust, notice in the above Cargo.toml how we change this from an executable binary to a cdylib. That's because runnable wasip2 components (or those using the <code>-mexec-model=command</code> in C/C++), would define a <code>wasi:cli/run</code> interface:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>wit_bindgen::generate!({inline: "
+package my:app@0.1.0;
+
+interface logger {
+    console-log-string: func(s: string);
+}
+
+world app {
+    import logger;
+}
+"});
+
+struct App;
+
+impl wasip2::exports::cli::run::Guest for App {
+    fn run() -&gt; Result&lt;(), ()&gt; {
+        crate::my::app::logger::console_log_string("Hello, world!");
+        Ok(())
+    }
+}
+
+wasip2::cli::command::export!(App);
+<span class="boring">}</span></code></pre></pre>
+<p>Since browsers don't support wasip2 as of yet, we can use jco by the bytecodealliance org to generate the necessary core modules and javascript glue code. After installing jco, we run the <code>transpile</code> command:</p>
+<pre><code class="language-bash">npm i --save-dev @bytecodealliance/jco
+npx jco transpile ./target/wasm32-wasip2/release/blog.wasm -O -o bin/app --instantiation async --no-nodejs-compat --tla-compat --no-typescript
+</code></pre>
+<p>The <code>-O</code> flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format. More on that later!</p>
+<p>The transpile step will generate a directory <code>bin/app</code> with the generated core wasm modules and js glue files.
+We can then instantiate the generated wasm modules, then pass our definition of console-log-string as part of my:app/logger interface:</p>
+<pre><code class="language-javascript">import { WASIShim } from "@bytecodealliance/preview2-shim/instantiation";
+// generated by jco
+import { instantiate as initApp } from "../bin/app/blog.js";
+
+async function main() {
+  const getAppCore = async (p) =&gt; {
+    const bytes = await fetch(
+      new URL(`../bin/app/${p}`, import.meta.url)
+    );
+    return WebAssembly.compileStreaming(bytes);
+  };
+
+  const wasiShim = new WASIShim({});
+  const wasi = wasiShim.getImportObject();
+
+  const app = await initApp(getAppCore, {
+    ...wasi,
+    "my:app/logger": {
+      consoleLogString: (s) =&gt; {
+        console.log(s);
+      },
+    },
+  });
+  app.run.run();
+}
+
+await main();
+</code></pre>
+<p>The above code requires a bundler like webpack to resolve the node_modules paths etc.</p>
+<h3 id="exporting-a-function-to-javascript-1"><a class="header" href="#exporting-a-function-to-javascript-1">Exporting a function (to javascript)</a></h3>
+<p>With the component model, we would simply define the function and export it:</p>
+<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+</span><span class="boring">fn main() {
+</span>wit_bindgen::generate!({inline: "
+package my:app@0.1.0;
+
+interface greeter {
+    greet: func(s: string) -&gt; string;
+}
+
+world app {
+    export greeter;
+}
+"});
+
+struct App;
+
+impl crate::exports::my::app::greeter::Guest for App {
+    fn greet(s: String) -&gt; String {
+        format!("Hello, {}!", s)
+    }
+}
+
+export!(App);
+<span class="boring">}</span></code></pre></pre>
+<p>And we can use it from our javascript:</p>
+<pre><code class="language-javascript">import { WASIShim } from "@bytecodealliance/preview2-shim/instantiation";
+// generated by jco
+import { instantiate as initApp } from "../bin/app/blog.js";
+
+async function main() {
+  const getAppCore = async (p) =&gt; {
+    const bytes = await fetch(
+      new URL(`../bin/app/${p}`, import.meta.url)
+    );
+    return WebAssembly.compileStreaming(bytes);
+  };
+
+  const wasiShim = new WASIShim({});
+  const wasi = wasiShim.getImportObject();
+
+  const app = await initApp(getAppCore, {
+    ...wasi,
+  });
+  console.log(app.greeter.greet("World!"));
+}
+
+await main();
+</code></pre>
+<p>Actually even the instantiation code is simpler since we don't import any javascript exports, but I went for the manual instiation code for symmetry with the previous section!
+For example if you don't pass --instantion:</p>
+<pre><code class="language-bash"># no --instantiation
+npx jco transpile ./target/wasm32-wasip2/release/blog.wasm -O -o bin/app --no-nodejs-compat --tla-compat --no-typescript
+</code></pre>
+<p>You would load using:</p>
+<pre><code class="language-javascript">import { $init, greeter } from "../bin/app/blog.js";
+
+async function main() {
+  await $init;
+  console.log(greeter.greet("World!"));
+}
+
+await main();
+</code></pre>
+<h2 id="downsides"><a class="header" href="#downsides">Downsides</a></h2>
+<p>I like the idea behind the component model and would like for it to succeed. It would greatly simplify working with wasm. However it's not all moonlight and roses. Especially for those of us more interested in wasm in the browser.</p>
+<ul>
+<li>
+<p>Currently the binaries are larger when targeting wasip2, but that's irrespective of whether we're building a wasip2 core module or component.</p>
+</li>
+<li>
+<p>It's unclear whether browsers will support the component model if and when wasi_snapshot_preview2 lands. That means we might still need the jco-transpile step for longer.</p>
+</li>
+<li>
+<p>No centralised wit registry as of yet. wit files need to be vendored in a wit/deps directory or pulled via wkg from non-centralized registries.</p>
+</li>
+<li>
+<p>Things still haven't settled so interfaces are prone to changes.</p>
+</li>
+<li>
+<p>Outside the browser, support is fragmentary and lagging across most wasm runtimes. Currently only wasmtime supports it.</p>
+</li>
+<li>
+<p>Adding wit interfaces might feel like effort duplication.</p>
+</li>
+<li>
+<p>Tools galore! Working with components requires more tools than what you would typically require from your default toolchain:</p>
+<ul>
+<li>wit-bindgen</li>
+<li>jco</li>
+<li>wasm-tools</li>
+<li>wac</li>
+<li>wkg</li>
+</ul>
+</li>
+<li>
+<p>Ye olde tools don't work (well) with wasm components: Binaryen, (wasm)objdump, (wasm)strip.</p>
+</li>
+<li>
+<p>Linking components isn't done with your usual linker, you can use wac to compose and plug components.</p>
+</li>
+<li>
+<p>Some of the above mentioned tools are early in development and are not yet stable.</p>
+</li>
+<li>
+<p>Debugging components can be a bit difficult. Lots of trampolines!!</p>
+</li>
+</ul>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>I like the value proposition of the component model, however, things are still cooking. Starting out, you might run into a steep learning curve, mostly because it's different from what you might be used to. WIT isn't difficult to learn. The tooling in my opinion needs to become more streamlined and part of the toolchain.
+The bigger picture however, is that once the component model is widely supported, it should make wasm programming much easier since you're programming against a higher level abstraction, while previously you had to deal with lower level C-like interfaces. The underlying language would be irrelevant to developers consuming those interfaces. WIT will become the new ABI.</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="WasmCompute.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="WasmCompute.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>

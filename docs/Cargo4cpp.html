@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js light">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -7,10 +7,10 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#ffffff">
 
         <link rel="icon" href="favicon.svg">
         <link rel="shortcut icon" href="favicon.png">
@@ -30,15 +30,17 @@
 
         <!-- Custom theme stylesheets -->
 
-    </head>
-    <body>
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -60,43 +62,49 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
-            html.classList.remove('no-js')
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            html.classList.add('js');
+            html.classList.add("js");
         </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var html = document.querySelector('html');
             var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
             } else {
                 sidebar = 'hidden';
             }
+            sidebar_toggle.checked = sidebar === 'visible';
             html.classList.remove('sidebar-visible');
             html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item expanded "><a href="Home.html"><strong aria-hidden="true">1.</strong> Home</a></li><li class="chapter-item expanded "><a href="Cargo4cpp.html" class="active"><strong aria-hidden="true">2.</strong> Cargo as a tool to distribute C/C++ executables</a></li><li class="chapter-item expanded "><a href="ObjcRuntime.html"><strong aria-hidden="true">3.</strong> Interfacing with the Objective-C runtime</a></li><li class="chapter-item expanded "><a href="RustVsCpp4Wasm.html"><strong aria-hidden="true">4.</strong> Rust vs C++ for frontend web (wasm) programming</a></li><li class="chapter-item expanded "><a href="Fltkrs2022.html"><strong aria-hidden="true">5.</strong> fltk-rs in 2022</a></li><li class="chapter-item expanded "><a href="WasmCompute.html"><strong aria-hidden="true">6.</strong> Fibonacci benchmarks between js, wasm and server</a></li></ol>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
             </div>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky bordered">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
-                        </button>
+                        </label>
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
                             <i class="fa fa-paint-brush"></i>
                         </button>
@@ -149,8 +157,8 @@
 <p>If you didn't know already, Cargo, Rust's package manager, can be used to install executable binaries via cargo-install. The downside is that they have to be Rust binaries. That makes sense since it does build binaries from source, and naturally Cargo knows how to build Rust projects!</p>
 <p>However, this functionality is too good to be exclusive to Rust projects. We'll see how we can also use cargo-install to install C/C++ executables.</p>
 <p>In short, this works by redefining the C/C++ executable's main() function.</p>
-<p>The technique described here is useful when an application lacks an official package, when the official package is outdated or when you don't wish to conflict with an already installed official package. </p>
-<p>A similar technique was used to wrap <a href="https://crates.io/crates/fltk-fluid">Fluid</a> (FLTK’s gui designer). However with C++, the redefined main function needs also to be preceded by <code>extern &quot;C&quot;</code> to avoid name mangling.</p>
+<p>The technique described here is useful when an application lacks an official package, when the official package is outdated or when you don't wish to conflict with an already installed official package.</p>
+<p>A similar technique was used to wrap <a href="https://crates.io/crates/fltk-fluid">Fluid</a> (FLTK’s gui designer). However with C++, the redefined main function needs also to be preceded by <code>extern "C"</code> to avoid name mangling.</p>
 <p>Back to the topic. We'll start with a simpler project.
 We'll create our Rust project:</p>
 <pre><code>$ cargo new cbin
@@ -162,7 +170,7 @@ $ cat &gt; src/main.c &lt;&lt; EOF
 &gt; #include &lt;stdio.h&gt;
 &gt; int main(int argc, char **argv) {
 &gt;   if (argc &gt; 1)
-&gt;     printf(&quot;Hello %s\n&quot;, argv[1]);
+&gt;     printf("Hello %s\n", argv[1]);
 &gt;   return 0;
 &gt; }
 &gt; EOF
@@ -170,15 +178,15 @@ $ cat &gt; src/main.c &lt;&lt; EOF
 <p>To build the C binary, we'll need a build script, and we can use the cc crate along with it to make our lives a bit easier!</p>
 <pre><code class="language-toml"># Cargo.toml
 [build-dependencies]
-cc = &quot;1.0&quot;
+cc = "1.0"
 </code></pre>
 <p>Our build.rs file (which we create at the root of our project) would look something like:</p>
 <pre><pre class="playground"><code class="language-rust">// build.rs
 fn main() {
     cc::Build::new()
-        .file(&quot;src/main.c&quot;)
-        .define(&quot;main&quot;, &quot;cbin_main&quot;) // notice our define here!
-        .compile(&quot;cbin&quot;);
+        .file("src/main.c")
+        .define("main", "cbin_main") // notice our define here!
+        .compile("cbin");
 }</code></pre></pre>
 <p>Check everything builds by running <code>cargo build</code>, you'll notice cargo built a static library <code>libcbin.a</code> (or cbin.lib if using the msvc toolchain) in the OUT_DIR.</p>
 <p>Lets now wrap the library call <code>cbin_main</code> which we had redefined in our build. Our src/main.rs should look like:</p>
@@ -187,7 +195,7 @@ use std::env;
 use std::ffi::CString;
 use std::os::raw::*;
 
-extern &quot;C&quot; {
+extern "C" {
     pub fn cbin_main(argc: c_int, argv: *mut *mut c_char) -&gt; c_int;
 }
 
@@ -212,7 +220,7 @@ fn main() {
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next" href="ObjcRuntime.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="ObjcRuntime.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -226,7 +234,7 @@ fn main() {
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next" href="ObjcRuntime.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="ObjcRuntime.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
