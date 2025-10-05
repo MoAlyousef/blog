@@ -1,13 +1,13 @@
-# The wasm component model isn't real, it can't hurt you!
+# Forays into the Wasm Component Model
 
-Well obviously it exists. I’ll admit the meme-style title is click-bait, but it kinda fits. Browsers and javascript runtimes don't support it (yet) and it's still a [Phase 1 proposal](https://github.com/WebAssembly/proposals?tab=readme-ov-file#phase-1---feature-proposal-cg).
+The initial title of this post was "The wasm component model isn't real, it can't hurt you"! Along with an image I planned to add with terms like wasi, wit, wac, wkg, jco and a few other confusing wasm-related terms. Eventually reverted since the component model obviously exists, albeit support for it is still fragmentary. Browsers and javascript runtimes don't support it (yet) and it's still a [Phase 1 proposal](https://github.com/WebAssembly/proposals?tab=readme-ov-file#phase-1---feature-proposal-cg).
 
-However, where wasi is concerned, it appears to be officially endorsed. The [wasi-sdk](https://github.com/WebAssembly/wasi-sdk) (under the official WebAssembly org) will generate a wasm component when building a C/C++ binary targeting wasm32-wasip2. The Rust toolchain wasm32-wasip2 target will similarly generate a wasm component. The wasm-component-ld (wrapper around wasm-ld) is automatically run on the generated wasm core module (unless you opt out by passing the `--skip-wit-component` linker flag).
+However, where wasi is concerned, the component model appears to be officially endorsed. The [wasi-sdk](https://github.com/WebAssembly/wasi-sdk) (under the official WebAssembly org) will generate a wasm component when building a C/C++ binary targeting wasm32-wasip2. The Rust toolchain wasm32-wasip2 target will similarly generate a wasm component. The wasm-component-ld (wrapper around wasm-ld) is automatically run on the generated wasm core module (unless you opt out by passing the `--skip-wit-component` linker flag).
 
 I had to recently port a library which supported freestanding wasm32, wasip1 and emscripten to wasip2, without having understood the component model, and that was a painful experience. So this post aims to shed light into what I learned in the process.
-By the way, LLMs didn't help much. I'm guessing since it's all too new and there aren't many resources on the subject.
+I'll preface by saying that LLMs didn't help much. I'm guessing since it's all too new and there aren't many resources on the subject.
 
-If you're new to the wasm ecosystem, you might be wondering how a wasm component differs from whatever was before it, which was a core module. You can read more about it [here](https://component-model.bytecodealliance.org/design/why-component-model.html).Without going into much detail on the differences, core modules limited data exchange to basic types, namely integers and floats. If you needed to pass a string from a core module to javascript for example, you would pass the address (an integer) of that string in wasm's linear memory, that along with its length, unless nul-terminated in which case you would handle that on the javascript side. The component model aims at remedying this by allowing the exchange of higher level types without concerning yourself with what's in memory or __indirect_function_table of your wasm binary. As such these things are hidden from you, in exchange for a higher level abstraction. You also no longer have to fiddle with a myriad of linker flags like `--import-memory --export-memory --export-table --export-dynamic --export-if-defined=whatever`.
+If you're new to the wasm ecosystem, you might be wondering how a wasm component differs from whatever was before it, which was a core module. You can read more about it [here](https://component-model.bytecodealliance.org/design/why-component-model.html).Without going into much detail on the differences, core modules limited data exchange to basic types, namely integers and floats. If you needed to pass a string from a core module to javascript for example, you would pass the address (an integer) of that string in wasm's linear memory, that along with its length, unless nul-terminated in which case you would need to account for that. The component model aims at remedying this by allowing the exchange of higher level types (generic lists, variants, records, enums, strings etc) without concerning yourself with your wasm binary's memory or __indirect_function_table. As such these things are hidden from you, in exchange, you get higher level abstractions. You also no longer have to fiddle with a myriad of linker flags like `--import-memory --export-memory --export-table --export-dynamic --export-if-defined=whatever`.
 This is done by declaring your types and interfaces in WIT (Wasm Interface Type language) in wit files in your wit directory!
 
 The idea is that higher-level wit interfaces will be distributed, devs will program against the APIs they declare, from any programming language which supports the component model (currently 8 languages), without meddling with low-level details or a C ABI. Components should give us better modularity, language interop and portability across languages and runtimes.
@@ -15,6 +15,7 @@ The idea is that higher-level wit interfaces will be distributed, devs will prog
 Before going into that, lets see how things worked prior to the component model.
 
 ## Before components
+
 ### Importing an extern function (from javascript)
 
 Let's say you wanted to console.log a Rust string:
@@ -62,7 +63,7 @@ On the javascript side, you would define `console_log_string`:
 ```
 When targeting a javascript runtime you would just do away with the html part and window.onload.
 
-The wasip1 model is practically the same, with a slight difference in that you would pass a `wasi_snapshot_preview1` object inside your importObject (alongside `env`). An npm library that I would recommend is [@bjorn3/browser_wasi_shim](https://github.com/bjorn3/browser_wasi_shim):
+The wasip1 model is practically the same, with a slight difference in that you would pass a `wasi_snapshot_preview1` object alongside `env`. An npm library that I would recommend is [@bjorn3/browser_wasi_shim](https://github.com/bjorn3/browser_wasi_shim):
 ```javascript
     let wasi = new WASI([], [], []);
     const response = await fetch("./target/wasm32-wasip1/debug/blog.wasm");
@@ -96,7 +97,6 @@ You can also pass the definition of `console_log_string` if you build with the s
 ```
 
 ### Exporting a function (to javascript)
-
 Let's say we want to use a native function in our javascript. Before the component model, similarly to how we imported the function, we'll have to export native functions as extern "C" (or in the case of Zig, extern "env") function for it to be callable from javascript. 
 
 ```rust
@@ -124,14 +124,14 @@ extern "C" fn greet(s: *const u8, len: usize) -> *const u8 {
 }
 ```
 
-In emscripten you would use the EMSCRIPTEN_KEEPALIVE macro along with specifying its an extern "C" function.
+In emscripten you would use the EMSCRIPTEN_KEEPALIVE macro along with specifying it as an extern "C" function.
 
 Which can be used from js:
 ```javascript
     const enc = new TextEncoder();
     const dec = new TextDecoder("utf-8");
     const txt = enc.encode("World!");
-    // __rust_alloc & __rust_dealloc are automatically exported in wasm32 core module rust binaries
+    // __rust_alloc & __rust_dealloc are automatically exported in wasm32 core module compiled by the rust toolchain
     const ptr = instance.exports.__rust_alloc(txt.length, 1);
     new Uint8Array(instance.exports.memory.buffer).set(txt, ptr);
     const msg = instance.exports.greet(ptr, txt.length);
@@ -344,4 +344,4 @@ I like the idea behind the component model and would like for it to succeed. It 
 
 ## Conclusion
 I like the value proposition of the component model, however, things are still cooking. Starting out, you might run into a steep learning curve, mostly because it's different from what you might be used to. WIT isn't difficult to learn. The tooling in my opinion needs to become more streamlined and part of the toolchain.
-The bigger picture however, is that once the component model is widely supported, it should make wasm programming much easier since you're programming against a higher level abstraction, while previously you had to deal with lower level C-like interfaces. The underlying language would be irrelevant to developers consuming those interfaces. WIT will become the new ABI.
+The bigger picture however, is that once the component model is widely supported, it should make wasm programming much easier since you're programming against higher level abstractions, while previously you had to deal with lower level C-like interfaces. The underlying language would be irrelevant to developers consuming those interfaces. WIT will become the new ABI.
