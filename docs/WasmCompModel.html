@@ -153,6 +153,9 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="forays-into-the-wasm-component-model"><a class="header" href="#forays-into-the-wasm-component-model">Forays into the Wasm Component Model</a></h1>
+<br>
+Date: 2025-10-05
+<br>
 <p>The initial title of this post was "The wasm component model isn't real, it can't hurt you"! Along with an image I planned to add with terms like wasi, wit, wac, wkg, jco and a few other confusing wasm-related terms. Eventually reverted since the component model obviously exists, albeit support for it is still fragmentary. Browsers and javascript runtimes don't support it (yet) and it's still a <a href="https://github.com/WebAssembly/proposals?tab=readme-ov-file#phase-1---feature-proposal-cg">Phase 1 proposal</a>.</p>
 <p>However, where wasi is concerned, the component model appears to be officially endorsed. The <a href="https://github.com/WebAssembly/wasi-sdk">wasi-sdk</a> (under the official WebAssembly org) will generate a wasm component when building a C/C++ binary targeting wasm32-wasip2. The Rust toolchain's <a href="https://doc.rust-lang.org/nightly/rustc/platform-support/wasm32-wasip2.html">wasm32-wasip2 target</a> (experimental tier 2 since Nov 2024) will similarly generate a wasm component. The wasm-component-ld (wrapper around wasm-ld) is automatically run on the generated wasm core module (unless you opt out by passing the <code>--skip-wit-component</code> linker flag).</p>
 <p>I had to recently port a library which supported freestanding wasm32, wasip1 and emscripten to wasip2, without having understood the component model, and that was a painful experience. So this post aims to shed light into what I learned in the process.
@@ -331,7 +334,11 @@ wasip2::cli::command::export!(App);
 <pre><code class="language-bash">npm i --save-dev @bytecodealliance/jco
 npx jco transpile ./target/wasm32-wasip2/release/blog.wasm -O -o bin/app --instantiation async --no-nodejs-compat --tla-compat --no-typescript
 </code></pre>
-<p>The <code>-O</code> flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format. More on that later!</p>
+<p>The <code>-O</code> flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format:</p>
+<pre><code class="language-bash">[parse exception: this looks like a wasm component, which Binaryen does not support yet (see https://github.com/WebAssembly/binaryen/issues/6728) (at 0:8)]
+Fatal: error parsing wasm (try --debug for more info)
+</code></pre>
+<p>More on that later!</p>
 <p>The transpile step will generate a directory <code>bin/app</code> with the generated core wasm modules and js glue files.
 We can then instantiate the generated wasm modules, then pass our definition of console-log-string as part of my:app/logger interface:</p>
 <pre><code class="language-javascript">import { WASIShim } from "@bytecodealliance/preview2-shim/instantiation";

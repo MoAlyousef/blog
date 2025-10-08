@@ -153,7 +153,9 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rust-vs-c-for-frontend-web-wasm-programming"><a class="header" href="#rust-vs-c-for-frontend-web-wasm-programming">Rust vs C++ for frontend web (wasm) programming</a></h1>
-<p>Date: 2022-7-26</p>
+<br>
+Date: 2022-7-26
+<br>
 <p>Several languages can now target wasm, I'll focus on Rust and C++ as these seem to have the most mature ecosystems, with C++'s Emscripten toolchain and Rust's wasm-bindgen (web-sys, js-sys etc) ecosystem.
 Keep in mind that both languages leverage LLVM's ability to generate wasm. Wasm itself has no direct access to the DOM, as such DOM calls pass through javascript.</p>
 <p>Basically when using a language, you're buying into the ecosystem. You can still target Emscripten using Rust via the wasm32-unknown-emscripten target. However it would require that the LLVM version of Rust you're using and the LLVM version Emscripten is using are compatible.

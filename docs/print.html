@@ -157,7 +157,9 @@
 <p>This is my personal blog. It's powered by <a href="https://github.com/rust-lang/mdBook">mdbook</a>.</p>
 <p>The source code can be found <a href="https://github.com/MoAlyousef/blog">here</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="cargo-as-a-tool-to-distribute-cc-executables"><a class="header" href="#cargo-as-a-tool-to-distribute-cc-executables">Cargo as a tool to distribute C/C++ executables</a></h1>
-<p>Date: 2021-05-04</p>
+<br>
+Date: 2021-05-04
+<br>
 <p>If you didn't know already, Cargo, Rust's package manager, can be used to install executable binaries via cargo-install. The downside is that they have to be Rust binaries. That makes sense since it does build binaries from source, and naturally Cargo knows how to build Rust projects!</p>
 <p>However, this functionality is too good to be exclusive to Rust projects. We'll see how we can also use cargo-install to install C/C++ executables.</p>
 <p>In short, this works by redefining the C/C++ executable's main() function.</p>
@@ -216,7 +218,9 @@ fn main() {
 </code></pre>
 <p>Now you can run <code>cargo install --path .</code> to install your C binary wrapper. Or you can publish your crate to crates.io and your crate</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="interfacing-with-the-objective-c-runtime"><a class="header" href="#interfacing-with-the-objective-c-runtime">Interfacing with the Objective-C runtime</a></h1>
-<p>Date: 2022-07-18</p>
+<br>
+Date: 2022-07-18
+<br>
 <p>I recently released a proof-of-concept <a href="https://github.com/MoAlyousef/floui">library</a> wrapping several native widgets on Android and iOS. It's written in C++, and I've also released <a href="https://github.com/MoAlyousef/floui-rs">Rust bindings</a> to it. In my post on the Rust subreddit announcing the release, a fellow redditor validly remarked "I'm a little surprised you wrapped a floui-rs around the Floui C++ project rather than just writing rust and calling into objc or the jni". I wasn't satisfied with my succinct answer, but I thought a Reddit reply wouldn't provide enough context to many reading it. So I decided to write this post. Just a note before diving in, floui's iOS code implementation is in Objective-C++ and requires a <code>#define FLOUI_IMPL</code> macro in at least one Objective-C++ source file, the rest of the gui code can be written in cpp files or .mm files since the interface is in C++. Regarding the JNI part, it's equally painful to write in C++ or Rust. So no point in discussing that.</p>
 <p>Most Apple frameworks expose an Objective-C api, except for some which expose a C++ (DriverKit) or a Swift api (StoreKit2). That means that Objective-C is Apple's system's language par excellence, and other languages will need to be able to interface with it for any functionality provided by Apple in its frameworks. Interfacing with Objective-C isn't straightforward, and apart from Swift (and only on Apple platforms, it can't interface with gnustep for example), no other language can directly interface with it. Luckily, the objc runtime offers C functions which allow other languages to interface with Objective-C frameworks. And any language that can call C, can -via the objc runtime- interface with Objective-C.</p>
 <p>In this post, I'll show how this can be done using C++ and Rust. The C++ version can be modified to C by just replacing <code>auto</code> with a concrete type.</p>
@@ -498,7 +502,9 @@ xcrun simctl install booted target/x86_64-apple-ios/debug/bundle/ios/pure.app
 <h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
 <p>C/C++/Rust can easily target the Objective-C runtime, less so when it comes to targetting Swift, but that's not as important. C/C++ have an extra advantage in that they're officially supported by Apple, for example you can create an XCode project and create both C/C++ source files and headers, and you'll get automatic integration in the build in addition to code completion etc. The system compiler on Apple is clang (AppleClang) which is a C/C++/ObjC/ObjCpp compiler. The default buildsystem, xcodebuild, supports creating universal binaries out of the box, so does CMake, the de-facto C++ buildsystem (which is actually unsupported by XCode, however it can generate xcodeproj files). Rust comes with its own buildsystem/package manager, Cargo. Although Cargo is great, like Rust, it's not directly supported in XCode. Also as the time of writing this, it can't generate MacOS or iOS bundles, nor can it produce universal binaries. Luckily, you can use other packages like cargo-bundle and cargo-lipo to create your bundles and universal libraries. Using the ObjC runtime functions like objc_msgSend/msg_send, apart from allow a develper to write in their preferred programming language, add no advantage whatsoever to the codebase. When it comes to api, it's exceedingly verbose, it's stringly-typed (like the JNI), most of it is unsafe to use (when it comes to Rust) that it's just more convenient to wrap it all in <code>unsafe</code>. Essentially, writing Objective-C/C++ can be the least painful path.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rust-vs-c-for-frontend-web-wasm-programming"><a class="header" href="#rust-vs-c-for-frontend-web-wasm-programming">Rust vs C++ for frontend web (wasm) programming</a></h1>
-<p>Date: 2022-7-26</p>
+<br>
+Date: 2022-7-26
+<br>
 <p>Several languages can now target wasm, I'll focus on Rust and C++ as these seem to have the most mature ecosystems, with C++'s Emscripten toolchain and Rust's wasm-bindgen (web-sys, js-sys etc) ecosystem.
 Keep in mind that both languages leverage LLVM's ability to generate wasm. Wasm itself has no direct access to the DOM, as such DOM calls pass through javascript.</p>
 <p>Basically when using a language, you're buying into the ecosystem. You can still target Emscripten using Rust via the wasm32-unknown-emscripten target. However it would require that the LLVM version of Rust you're using and the LLVM version Emscripten is using are compatible.
@@ -571,7 +577,9 @@ fn main() {
 <h2 id="conclusion-1"><a class="header" href="#conclusion-1">Conclusion</a></h2>
 <p>Both Rust and C++ can target the browser and perform DOM calls. Rust provides a better api with web-sys. Emscripten's <code>bind</code> api is stringly-typed so can be a chore to program against. The wasm32-unknown-unknown target is better geared for DOM calls or graphics via the canvas api, while emscripten is better geared for apps targetting OpenGL/SDL (games). As for client-side computation, both targets can be used.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fltk-rs-in-2022"><a class="header" href="#fltk-rs-in-2022">fltk-rs in 2022</a></h1>
-<p>Date: 2023-01-02</p>
+<br>
+Date: 2023-01-02
+<br>
 <h2 id="looking-back"><a class="header" href="#looking-back">Looking back</a></h2>
 <p>Looking back into 2022, <a href="https://github.com/fltk-rs/fltk-rs">fltk-rs</a> saw its 1.0 release in April 2022. On October 2022, the project finished its 3rd year. 2022 also saw the publication of the fltk-rs <a href="https://fltk-rs.github.io/fltk-book/">book</a>. And a rewrite of <a href="https://github.com/fltk-rs/fl2rust">fl2rust</a>, which is a FLUID to Rust transpiler. Fluid is a RAD FLTK application which is similar to Gtk's glade and QtCreator.</p>
 <p>Looking back further, fltk-rs was started for a specific requirement, to easily deploy statically-linked gui applications on Windows 7 PCs in my university hospital's simulation center, it also had to be crossplatform for those using mac laptops!</p>
@@ -585,6 +593,9 @@ fn main() {
 <p>I also plan to try out the newer Rust gui toolkits, since I feel far removed from where I once was. I've only tried egui in the past year and a half, and that was to add an <a href="https://github.com/fltk-rs/fltk-egui">fltk-rs integration</a> to it.</p>
 <p>I'm already excited to see the ecosystem maturing. If you frequent the Rust subreddit, you would notice a recurring question on what gui framework to use, and there would always be a few who would say that Rust isn't gui yet. Maybe not a few years back, but if you compare the situation to other programming languages (apart from C/C++), Rust already provides many gui crates that you can already use.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="fibonacci-benchmarks-between-js-wasm-and-server"><a class="header" href="#fibonacci-benchmarks-between-js-wasm-and-server">Fibonacci benchmarks between js, wasm and server</a></h1>
+<br>
+Date: 2023-11-15
+<br>
 <h2 id="introduction"><a class="header" href="#introduction">Introduction</a></h2>
 <p>WebAssembly can't directly access the DOM, it has to call javascript and is known to incur a cost when doing so. What about raw computation, how does wasm compare to server-side computation or client-side javascript computation? And when is it favorable to use it?</p>
 <p>The source code for the benchmark can be found <a href="https://github.com/MoAlyousef/fib-bench">here</a>, along with instructions on how to build it.</p>
@@ -622,6 +633,9 @@ Google chrome: Version 119.0.6045.107 (Official Build) (64-bit)</p>
 <li>Wasm on the browser, to me, makes sense when wanting to target the web using a different language than javascript. Although I'm no fan of js, js browser engines do a good job at optimizing it. However other languages do bring other advantages to the table, either in language merit or ecosystem. It also makes sense if you're serving static web pages or SPA's and not handling (or can't handle) post requrests, or want to reduce server computations or avoid network issues.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="forays-into-the-wasm-component-model"><a class="header" href="#forays-into-the-wasm-component-model">Forays into the Wasm Component Model</a></h1>
+<br>
+Date: 2025-10-05
+<br>
 <p>The initial title of this post was "The wasm component model isn't real, it can't hurt you"! Along with an image I planned to add with terms like wasi, wit, wac, wkg, jco and a few other confusing wasm-related terms. Eventually reverted since the component model obviously exists, albeit support for it is still fragmentary. Browsers and javascript runtimes don't support it (yet) and it's still a <a href="https://github.com/WebAssembly/proposals?tab=readme-ov-file#phase-1---feature-proposal-cg">Phase 1 proposal</a>.</p>
 <p>However, where wasi is concerned, the component model appears to be officially endorsed. The <a href="https://github.com/WebAssembly/wasi-sdk">wasi-sdk</a> (under the official WebAssembly org) will generate a wasm component when building a C/C++ binary targeting wasm32-wasip2. The Rust toolchain's <a href="https://doc.rust-lang.org/nightly/rustc/platform-support/wasm32-wasip2.html">wasm32-wasip2 target</a> (experimental tier 2 since Nov 2024) will similarly generate a wasm component. The wasm-component-ld (wrapper around wasm-ld) is automatically run on the generated wasm core module (unless you opt out by passing the <code>--skip-wit-component</code> linker flag).</p>
 <p>I had to recently port a library which supported freestanding wasm32, wasip1 and emscripten to wasip2, without having understood the component model, and that was a painful experience. So this post aims to shed light into what I learned in the process.
@@ -800,7 +814,11 @@ wasip2::cli::command::export!(App);
 <pre><code class="language-bash">npm i --save-dev @bytecodealliance/jco
 npx jco transpile ./target/wasm32-wasip2/release/blog.wasm -O -o bin/app --instantiation async --no-nodejs-compat --tla-compat --no-typescript
 </code></pre>
-<p>The <code>-O</code> flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format. More on that later!</p>
+<p>The <code>-O</code> flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format:</p>
+<pre><code class="language-bash">[parse exception: this looks like a wasm component, which Binaryen does not support yet (see https://github.com/WebAssembly/binaryen/issues/6728) (at 0:8)]
+Fatal: error parsing wasm (try --debug for more info)
+</code></pre>
+<p>More on that later!</p>
 <p>The transpile step will generate a directory <code>bin/app</code> with the generated core wasm modules and js glue files.
 We can then instantiate the generated wasm modules, then pass our definition of console-log-string as part of my:app/logger interface:</p>
 <pre><code class="language-javascript">import { WASIShim } from "@bytecodealliance/preview2-shim/instantiation";

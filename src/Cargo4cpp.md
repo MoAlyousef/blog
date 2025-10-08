@@ -1,6 +1,7 @@
 # Cargo as a tool to distribute C/C++ executables
-
+<br>
 Date: 2021-05-04
+<br>
 
 If you didn't know already, Cargo, Rust's package manager, can be used to install executable binaries via cargo-install. The downside is that they have to be Rust binaries. That makes sense since it does build binaries from source, and naturally Cargo knows how to build Rust projects!
 

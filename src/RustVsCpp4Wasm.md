@@ -1,6 +1,7 @@
 # Rust vs C++ for frontend web (wasm) programming
-
+<br>
 Date: 2022-7-26
+<br>
 
 Several languages can now target wasm, I'll focus on Rust and C++ as these seem to have the most mature ecosystems, with C++'s Emscripten toolchain and Rust's wasm-bindgen (web-sys, js-sys etc) ecosystem.
 Keep in mind that both languages leverage LLVM's ability to generate wasm. Wasm itself has no direct access to the DOM, as such DOM calls pass through javascript. 

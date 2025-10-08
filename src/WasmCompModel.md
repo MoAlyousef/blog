@@ -1,4 +1,7 @@
 # Forays into the Wasm Component Model
+<br>
+Date: 2025-10-05
+<br>
 
 The initial title of this post was "The wasm component model isn't real, it can't hurt you"! Along with an image I planned to add with terms like wasi, wit, wac, wkg, jco and a few other confusing wasm-related terms. Eventually reverted since the component model obviously exists, albeit support for it is still fragmentary. Browsers and javascript runtimes don't support it (yet) and it's still a [Phase 1 proposal](https://github.com/WebAssembly/proposals?tab=readme-ov-file#phase-1---feature-proposal-cg).
 
@@ -17,7 +20,6 @@ Before going into that, lets see how things worked prior to the component model.
 ## Before components
 
 ### Importing an extern function (from javascript)
-
 Let's say you wanted to console.log a Rust string:
 ```rust
 unsafe extern "C" {
@@ -205,7 +207,12 @@ Since browsers don't support wasip2 as of yet, we can use jco by the bytecodeall
 npm i --save-dev @bytecodealliance/jco
 npx jco transpile ./target/wasm32-wasip2/release/blog.wasm -O -o bin/app --instantiation async --no-nodejs-compat --tla-compat --no-typescript
 ```
-The `-O` flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format. More on that later!
+The `-O` flag tells jco to optimize the generated wasm modules. This might not be necessary for Rust wasm components, however if you try to generate C/C++ wasm components in Release mode, you'll be hit with an error. Basically binaryen can't read the wasm component format:
+```bash
+[parse exception: this looks like a wasm component, which Binaryen does not support yet (see https://github.com/WebAssembly/binaryen/issues/6728) (at 0:8)]
+Fatal: error parsing wasm (try --debug for more info)
+```
+More on that later!
 
 The transpile step will generate a directory `bin/app` with the generated core wasm modules and js glue files.
 We can then instantiate the generated wasm modules, then pass our definition of console-log-string as part of my:app/logger interface:

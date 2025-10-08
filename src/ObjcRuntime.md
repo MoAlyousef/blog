@@ -1,6 +1,7 @@
 # Interfacing with the Objective-C runtime
-
+<br>
 Date: 2022-07-18
+<br>
 
 I recently released a proof-of-concept [library](https://github.com/MoAlyousef/floui) wrapping several native widgets on Android and iOS. It's written in C++, and I've also released [Rust bindings](https://github.com/MoAlyousef/floui-rs) to it. In my post on the Rust subreddit announcing the release, a fellow redditor validly remarked "I'm a little surprised you wrapped a floui-rs around the Floui C++ project rather than just writing rust and calling into objc or the jni". I wasn't satisfied with my succinct answer, but I thought a Reddit reply wouldn't provide enough context to many reading it. So I decided to write this post. Just a note before diving in, floui's iOS code implementation is in Objective-C++ and requires a `#define FLOUI_IMPL` macro in at least one Objective-C++ source file, the rest of the gui code can be written in cpp files or .mm files since the interface is in C++. Regarding the JNI part, it's equally painful to write in C++ or Rust. So no point in discussing that.
 

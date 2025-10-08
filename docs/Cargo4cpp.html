@@ -153,7 +153,9 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="cargo-as-a-tool-to-distribute-cc-executables"><a class="header" href="#cargo-as-a-tool-to-distribute-cc-executables">Cargo as a tool to distribute C/C++ executables</a></h1>
-<p>Date: 2021-05-04</p>
+<br>
+Date: 2021-05-04
+<br>
 <p>If you didn't know already, Cargo, Rust's package manager, can be used to install executable binaries via cargo-install. The downside is that they have to be Rust binaries. That makes sense since it does build binaries from source, and naturally Cargo knows how to build Rust projects!</p>
 <p>However, this functionality is too good to be exclusive to Rust projects. We'll see how we can also use cargo-install to install C/C++ executables.</p>
 <p>In short, this works by redefining the C/C++ executable's main() function.</p>
