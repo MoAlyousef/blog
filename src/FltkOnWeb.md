@@ -473,11 +473,11 @@ That's because the standard C/C++ file functions work only for Emscripten's virt
 ```
 
 ## Step 9: Working around limitations
-- Mitigating the reentrancy issue
+### Mitigating the reentrancy issue
 As mentioned previously, since browsers are event-driven, you should avoid long while loops since these would block your page. FLTK's menu windows would loop until something is selected. The blocking can be (partially) mitigated by using `emscripten_sleep` in the ` Fl_Emscripten_System_Driver::wait` method and enabling Asyncify support in Emscripten.
 Full mitigation would require removing while loops in menu code but that would be too intrusive!
 
-- Virtual keyboard support for text accepting widgets on mobile
+### Virtual keyboard support for text accepting widgets on mobile
 When you use a mobile browser and tap into an HTMLInputElement (input) or a textarea element, you automatically get a virtual keyboard that you can type into. However, an Fl_Input or Fl_Text_Editor aren't the above mentioned elements. They're drawings in the canvas. While on Android you can manually show the keyboard and that would work, on ios it's just not possible.
 Some browsers provide a [Virtual Keyboard api](https://developer.mozilla.org/en-US/docs/Web/API/VirtualKeyboard_API), alas safari isn't one of them, nor is WebView on iOS, which is used by chrome and firefox on iOS.
 To actually support this, I would have to modify FLTK to make Fl_Input be backed by an input element, and Fl_Text_Editor be backed by a textarea element. The change was too intrusive so I dropped it. If eventually iOS browsers support the Virtual Keyboard API, I might implement this!
