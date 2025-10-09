@@ -7,3 +7,4 @@
 - [fltk-rs in 2022](Fltkrs2022.md)
 - [Fibonacci benchmarks between js, wasm and server](WasmCompute.md)
 - [Forays into the Wasm Component Model](WasmCompModel.md)
+- [FLTK on the Web](FltkOnWeb.md)

@@ -1,0 +1,653 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>FLTK on the Web - MoAlyousef&#x27;s blog</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">MoAlyousef&#x27;s blog</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="fltk-on-the-web"><a class="header" href="#fltk-on-the-web">FLTK on the Web</a></h1>
+<br>
+Date: 2025-10-09
+<br>
+<p>This post is about getting FLTK to build for wasm and run in browsers!
+Source code can be found in <a href="https://github.com/MoAlyousef/fltk_wasm32_emscripten">a fork of FLTK</a> under the emscripten branch.</p>
+<p>If you try to <code>git clone</code> FLTK and build it using the <a href="https://emscripten.org/">Emscripten toolchain</a>, you'll be met with a lot of errors. The first issue is FLTK's CMakeLists.txt. The build process conditionally includes the source files required for the target platform. In FLTK's case, when the build doesn't know what it's building for, it assumes Windows. So it will incorporate the Window's driver files which has win32 calls unidentified by the compiler, and the build fails.</p>
+<h2 id="step-1-cmake"><a class="header" href="#step-1-cmake">Step 1: CMake</a></h2>
+<p>Extend the build to identify Emscripten as a platform, luckily CMake knows <code>Emscripten</code>, so that's as simple as adding:</p>
+<pre><code class="language-cmake">elseif(WIN32)
+# add window's driver files
+elseif(EMSCRIPTEN)
+# empty for now
+endif()
+</code></pre>
+<p>Some extra changes were also need in the CMake scripts, since apparently <code>if(UNIX)</code> in CMake returns true on Emscripten.
+I also had to provide a definition for <code>Window</code> which points to the underlying handle.
+For example on Windows it's an HWND, on macOS it's an NSWindow, on X11 it's a Window. I settled on a <code>typedef int Window</code> in FL/platform.H.
+This makes the configure step and compilation to succeed. You can silence linker errors by passing the Emscripten shell option <code>-sERROR_ON_UNDEFINED_SYMBOLS=0</code>.
+Actually trying to get anything to show in the browser won't work since we now need to plug the windowing, drawing and event handling code to something browsers understand.</p>
+<h2 id="step-2-driver-stubs"><a class="header" href="#step-2-driver-stubs">Step 2: Driver stubs</a></h2>
+<p>I had considered creating a null driver which can be used as a baseline for extra drivers to work. I've also suggested it in the fltk mailing list:
+https://groups.google.com/g/fltkcoredev/c/lXqDv3BUW9Q/m/eAJWBVisCQAJ</p>
+<p>The issue however was that I found it was necessary to modify FLTK sources outside of drivers to support Emscripten.
+So even though I still find that it would be useful eventually if FLTK had a null driver which allows third party developers to create external drivers/backends, it would require more work than what I had set out to do.</p>
+<p>So I shifted my focus to adding an Emscripten driver for FLTK.
+There are essential classes which are instantiated by FLTK which will handle windowing and graphics:</p>
+<pre><code class="language-c++">Fl_Screen_Driver *Fl_Screen_Driver::newScreenDriver() {
+  return new Fl_Emscripten_Screen_Driver();
+}
+
+Fl_System_Driver *Fl_System_Driver::newSystemDriver() {
+  return new Fl_Emscripten_System_Driver();
+}
+
+Fl_Image_Surface_Driver *Fl_Image_Surface_Driver::newImageSurfaceDriver(int w, int h, int highres,
+                                                                        Fl_Offscreen off) {
+  return new Fl_Emscripten_Image_Surface_Driver(w, h, highres, off);
+}
+
+Fl_Graphics_Driver *Fl_Graphics_Driver::newMainGraphicsDriver() {
+  return new Fl_Emscripten_Graphics_Driver();
+}
+
+Fl_Window_Driver *Fl_Window_Driver::newWindowDriver(Fl_Window *w) {
+  return new Fl_Emscripten_Window_Driver(w);
+}
+
+Fl_Copy_Surface_Driver *Fl_Copy_Surface_Driver::newCopySurfaceDriver(int w, int h) {
+  return new Fl_Emscripten_Copy_Surface_Driver(w, h);
+}
+</code></pre>
+<p>Basically you have to provide definitions to these class methods (declared in the respective headers). You do that by subclassing each driver and returning an instance of the subclass.</p>
+<p>The classes also provide method declarations which need to be defined in the driver sources. Some are already defined in core FLTK, so you can rely on the default implementation or override them when necessary. So there were a lot of stubs in the beginning.</p>
+<p>This step will actually build and link correctly, even though it wouldn't show anything in the browser.</p>
+<h2 id="step-3-actually-deciding-whats-a-window"><a class="header" href="#step-3-actually-deciding-whats-a-window">Step 3: Actually deciding what's a Window</a></h2>
+<p>I knew from the beginning that I was going to use the canvas for drawing. But the question of "what's a window" in the browser had me stumped for some time. I decided that an FLTK window should map to an HTMLDivElement.
+It should contain decorations (borders with a title bar and at least a close button). The decorations will be another <code>div</code>, and the client area would be the canvas. The window's handle (the int from before), would be incorporated into the div element's id. In essence my <code>Fl_Emscripten_Window_Driver::makeWindow()</code> method would contain something like:</p>
+<pre><code class="language-cpp">  EM_ASM(
+      {
+        let body = document.getElementsByTagName("body")[0];
+        let div = document.createElement("DIV");
+        div.id = "fltk_div" + $0;
+        div.tabIndex = "-1";
+        div.addEventListener("contextmenu", (e) =&gt; e.preventDefault());
+        div.style.position = "absolute";
+        div.style.left = $2 + "px";
+        div.style.top = $1 ? ($3 - 30) + "px" : $3 + "px";
+        div.style.zIndex = 1;
+        div.style.backgroundColor = "#f1f1f1";
+        div.style.borderRight = "1px solid #555";
+        div.style.borderBottom = "1px solid #555";
+        div.style.textAlign = "center";
+        body.appendChild(div);
+        let decor = document.createElement("DIV");
+        decor.id = "fltk_decor" + $0;
+        decor.style.height = "16px";
+        decor.style.font = "14px Arial";
+        decor.style.padding = "6px";
+        decor.style.cursor = "move";
+        decor.style.zIndex = 2;
+        decor.style.backgroundColor = "#2196F3";
+        decor.style.color = "#fff";
+        decor.style.cursor = "pointer";
+        div.appendChild(decor);
+        let header = document.createElement("DIV");
+        header.textContent = UTF8ToString($6);
+        header.id = "fltk_decor_header" + $0;
+        header.style.font = "14px Arial";
+        decor.appendChild(header);
+        let close = document.createElement("BUTTON");
+        close.id = "closewin";
+        close.textContent = "X";
+        close.style.font = "bold 14px Arial";
+        close.style.position = "absolute";
+        close.style.top = "1%";
+        close.style.right = "1px";
+        close.style.backgroundColor = "#2196F3";
+        close.style.border = "none";
+        close.style.color = "#fff";
+        close.addEventListener("click", () =&gt; div.hidden = true);
+        decor.appendChild(close);
+        let canvas = document.createElement("CANVAS");
+        canvas.id = "fltk_canvas" + $0;
+        canvas.setAttribute("data-raw-handle", $0.toString());
+        canvas.tabIndex = "-1";
+        canvas.width = $4;
+        canvas.height = $5;
+        div.appendChild(canvas);
+        canvas.addEventListener("click", () =&gt; canvas.focus());
+        decor.addEventListener("mousedown", () =&gt; canvas.focus());
+        div.addEventListener(
+            "focusin", () =&gt; { canvas.focus(); div.style.zIndex = 1; });
+        div.addEventListener(
+            "focusout", () =&gt; { canvas.blur(); div.style.zIndex = 0; });
+        if ($1 === 0) decor.hidden = true;
+        // https://www.w3schools.com/HOWTO/howto_js_draggable.asp
+        function dragElement(elmnt) {
+          var pos1 = 0;
+          var pos2 = 0;
+          var pos3 = 0;
+          var pos4 = 0;
+          if (document.getElementById("fltk_decor" + $0)) {
+            document.getElementById("fltk_decor" + $0).onmousedown = dragMouseDown;
+          } else {
+            elmnt.onmousedown = dragMouseDown;
+          }
+
+          function dragMouseDown(e) {
+            e = e || window.event;
+            e.preventDefault();
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            document.onmousemove = elementDrag;
+          }
+
+          function elementDrag(e) {
+            e = e || window.event;
+            e.preventDefault();
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+            _fltk_em_track_div($0, elmnt.offsetLeft|0, elmnt.offsetTop|0);
+          }
+
+          function closeDragElement() {
+            document.onmouseup = null;
+            document.onmousemove = null;
+          }
+        }
+
+        dragElement(document.getElementById("fltk_div" + $0));
+      },
+      ID, pWindow-&gt;border(), pWindow-&gt;x(), pWindow-&gt;y(), 
+      pWindow-&gt;w(), pWindow-&gt;h(), pWindow-&gt;label() ? pWindow-&gt;label(): "");
+</code></pre>
+<p>The above code should allow:</p>
+<ul>
+<li>Allow setting a title on the title bar.</li>
+<li>Dragging the div across the screen from its title bar, like you would any window on your desktop.</li>
+<li>Allow Fl_Window::set_border(false) to hide the title bar.</li>
+</ul>
+<p>There's a downside to this approach however. FLTK allows embedding windows, while in the browser, you can't embed a canvas inside a canvas!</p>
+<p>Plugging the rest of the Fl_Window_Driver methods and wiring them to emscripten methods was quite easy. Mapping FLTK events to browser events, FLTK cursor types to browser cursor types, FLTK fonts to browser fonts was some busy work but not that difficult.
+Events required forwarding via <code>Fl::handle</code> to the window/div in which they occured.
+Similarly implementing the screen driver methods like the screen sizes to <code>screen (or globalThis.screen)</code> was easy:</p>
+<pre><code class="language-cpp">using namespace emscripten;
+int Fl_Emscripten_Screen_Driver::w() {
+  val screen = val::global("screen");
+  return screen["availWidth"].as&lt;int&gt;();
+}
+int Fl_Emscripten_Screen_Driver::h() {
+  val screen = val::global("screen");
+  return screen["availHeight"].as&lt;int&gt;();
+}
+</code></pre>
+<p>An intrusive change to the FLTK sources outside of driver code:</p>
+<pre><code class="language-cpp">int Fl::run() {
+#ifndef __EMSCRIPTEN__
+  while (Fl_X::first) wait(FOREVER);
+#else
+  emscripten_set_main_loop([]() { Fl::wait(); }, 0, true);
+#endif
+  return 0;
+  return 0;
+}
+</code></pre>
+<p>Browser environments operate on an event-driven model. An infinite while loop, which is common in native applications, would block the browser's main thread, causing the page to become unresponsive.</p>
+<h2 id="step-4-graphics"><a class="header" href="#step-4-graphics">Step 4: Graphics</a></h2>
+<p>FLTK on linux/bsd uses Cairo for drawing (default on wayland, requires FLTK_GRAPHICS_CAIRO on X11).
+The browser's canvas api is similar enough to cairo's graphics api, so that was very helpful in translating graphics calls to canvas calls. For example compare the following:</p>
+<pre><code class="language-cpp">void Fl_Cairo_Graphics_Driver::loop(int x0, int y0, int x1, int y1, int x2, int y2) {
+  cairo_save(cairo_);
+  cairo_new_path(cairo_);
+  cairo_move_to(cairo_, x0, y0);
+  cairo_line_to(cairo_, x1, y1);
+  cairo_line_to(cairo_, x2, y2);
+  cairo_close_path(cairo_);
+  cairo_stroke(cairo_);
+  cairo_restore(cairo_);
+  surface_needs_commit();
+}
+</code></pre>
+<p>to:</p>
+<pre><code class="language-cpp">void Fl_Emscripten_Graphics_Driver::loop(int x0, int y0, int x1, int y1, int x2, int y2) {
+  EM_ASM(
+      {
+        let ctx = Emval.toValue($0);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo($1, $2);
+        ctx.lineTo($3, $4);
+        ctx.lineTo($5, $6);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      },
+      ctxt, x0, y0, x1, y1, x2, y2);
+}
+</code></pre>
+<p>Drawing images was tricky since FLTK supports L8, LA8, RGB8 and RGBA8 formats, so FLTK images needed conversion to an RGBA8 format before sending them to the canvas for drawing.</p>
+<p>Building this would finally show a window with whatever widget you put in it. The implementation was buggy from some mismatches in event handling but that was easily worked out since there was something I can actually test and see!</p>
+<p>Adding offscreen support, FLTK supports offscreen drawing via Fl_Offscreen and the Image Surface driver, and browsers support an Offscreen canvas. This requires enabling the Emscripten flag OFFSCREENCANVAS_SUPPORT. Which if enabled, should work out of the box.</p>
+<h2 id="step-5-reworking-events"><a class="header" href="#step-5-reworking-events">Step 5: Reworking events</a></h2>
+<p>It's not enough to translate a browser event to an FLTK event:</p>
+<pre><code class="language-cpp">static int match_mouse_event(int eventType) {
+  switch (eventType) {
+    case EMSCRIPTEN_EVENT_MOUSEDOWN:
+      return FL_PUSH;
+    case EMSCRIPTEN_EVENT_MOUSEUP:
+      return FL_RELEASE;
+    case EMSCRIPTEN_EVENT_MOUSEMOVE:
+      return FL_MOVE;
+    case EMSCRIPTEN_EVENT_MOUSEENTER:
+      return FL_ENTER;
+    case EMSCRIPTEN_EVENT_MOUSELEAVE:
+      return FL_LEAVE;
+    case EMSCRIPTEN_EVENT_DBLCLICK:
+      return FL_PUSH;
+    case EMSCRIPTEN_EVENT_CLICK:
+      return FL_PUSH;
+    default:
+      return 0;
+  }
+}
+</code></pre>
+<p>You would also need to handle state:</p>
+<pre><code class="language-cpp">int flev = match_mouse_event(eventType);
+  if (flev == FL_PUSH) {
+    if (eventType == EMSCRIPTEN_EVENT_DBLCLICK)
+      Fl::e_clicks = 1;
+    else
+      Fl::e_clicks = 0;
+    Fl::e_is_click = 1;
+    px = Fl::e_x_root;
+    py = Fl::e_y_root;
+    if (event-&gt;button == 0)
+      state |= FL_BUTTON1;
+    if (event-&gt;button == 1)
+      state |= FL_BUTTON2;
+    if (event-&gt;button == 2)
+      state |= FL_BUTTON3;
+    Fl::e_keysym = FL_Button + event-&gt;button + 1;
+// same for other mouse events
+</code></pre>
+<p>Same for key presses!
+It also turns out that you have to unregister events from closed windows (divs)!
+This step was probably the least interesting to work on and took a disproportionatly long time.</p>
+<h2 id="step-6-text-essentials"><a class="header" href="#step-6-text-essentials">Step 6: Text essentials</a></h2>
+<p>Being able to cut/copy/paste text required venturing into some new territories for me.
+I never had to deal with the browser's clipboard for example. Getting the clipboard text for example requires:</p>
+<pre><code class="language-cpp">std::string clipText =
+          emscripten::val::global("navigator")["clipboard"].call&lt;val&gt;("readText").await().as&lt;std::string&gt;();
+</code></pre>
+<p>Writing to the clipboard is also done via navigator.clipboard.writeText.</p>
+<p>Similarly getting an image from the clipboard isn't trivial either:</p>
+<pre><code class="language-cpp">EM_ASYNC_JS(EM_VAL, get_clipboard_image, (), {
+  const itemList = await navigator.clipboard.read();
+  let imageType;
+  const item = itemList.find(item =&gt; item.types.some(type =&gt; type.startsWith('image/')));
+  if (item) {
+    const imageBlob = await item.getType(imageType = item.types.find(type =&gt; type.startsWith('image/')));
+    const imageBitmap = await createImageBitmap(imageBlob);
+    const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+    const context = canvas.getContext('2d');
+    context.drawImage(imageBitmap, 0, 0);
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    return imageData;
+  } else {
+    return null;
+  }
+});
+</code></pre>
+<p>In all it wasn't so bad.</p>
+<h2 id="step-7-experimental-browser-apis"><a class="header" href="#step-7-experimental-browser-apis">Step 7: Experimental browser APIs</a></h2>
+<p>Browsers provide a File Sytem API, that's how some sites allow you to open a file dialog and upload a file for example.
+This has limited availability unfortunately. Firefox for example doesn't support showOpenFilePicker and showDirectoryPicker.
+Where it's supported, spawning a File dialog from FLTK in the browser should work:</p>
+<pre><code class="language-cpp">// This translates the chooser type to a browser picker. We have 3 main types:
+// 1- showOpenFilePicker
+// 2- showSaveFilePicker
+// 3- showDirectoryPicker
+// clang-format off
+EM_ASYNC_JS(EM_VAL, showChooser, (int type, const char *filter, const char *dir, const char *preset), {
+  if (!window.showOpenFilePicker) {
+    return null;
+  }
+  let multiple = false;
+  let files = false;
+  let save = false;
+  if (type === 0 || type === 2 || type === 4) {
+    files = true;
+  }
+  if (type === 2 || type === 3) {
+    mutliple = true;
+  }
+  if (type &gt; 3) {
+    save = true;
+  }
+  let func;
+  if (files) {
+    if (save) {
+      func = window.showSaveFilePicker;
+    } else {
+      func = window.showOpenFilePicker;
+    }
+  } else {
+    func = window.showDirectoryPicker;
+  }
+  let dir1 = dir ? UTF8ToString(dir) : 'desktop';
+  let filt = UTF8ToString(filter).split(' ');
+  // I use application/x-abiword since I don't think it's widely used as a mime type!
+  const openPickerOpts = {
+    types: [
+      {
+        accept: {
+          "application/x-abiword": filt,
+        },
+      },
+    ],
+    startIn: dir1,
+    excludeAcceptAllOption: true,
+    multiple: multiple,
+  };
+  const savePickerOpts = {
+    types: [
+      {
+        accept: {
+          "application/x-abiword": filt,
+        },
+      },
+    ],
+    suggestedName: UTF8ToString(preset),
+    startIn: dir1,
+    excludeAcceptAllOption: true,
+  };
+  const directoryOpts = {
+    mode: "readwrite",
+    startIn: dir1,
+  };
+  if (files) {
+    return Emval.toHandle(func(save ? savePickerOpts : openPickerOpts));
+  } else {
+    return Emval.toHandle(func(directoryOpts));
+  }
+});
+</code></pre>
+<p>Accessing the selected files is done via:</p>
+<ul>
+<li>fl_read_to_string</li>
+<li>fl_read_to_binary</li>
+<li>fl_write_to_file</li>
+</ul>
+<p>That's because the standard C/C++ file functions work only for Emscripten's virtual filesystem. The above functions utilise browser functions to carry reads and writes:</p>
+<pre><code class="language-cpp">  // writing to a file using the browsers' file system api
+  val data1 = val(typed_memory_view(len, data));
+  val file = filehandles[idx];
+  val writable = file.call&lt;val&gt;("createWritable").await();
+  writable.call&lt;val&gt;("write", data1).await();
+  writable.call&lt;val&gt;("close").await();
+</code></pre>
+<p>Similarly, chrome and related browsers provided a queryLocalFonts method which allows you to set a font from the host system:</p>
+<pre><code class="language-cpp">  bool has_query_fonts_api = EM_ASM_INT({
+    let has_api = false;
+    if ("queryLocalFonts" in window) {
+      navigator.permissions.query({ name: "local-fonts" }).then((result) =&gt; {
+      if (result.state === "granted" || result.state === "prompt") {
+        has_api = true;
+      }});
+    }
+    return has_api;
+  });
+  // clang-format on
+  if (!has_query_fonts_api) {
+    Fl::set_font((Fl_Font)(FL_FREE_FONT + 1), name);
+    built_in_table.push_back({name});
+    return FL_FREE_FONT + 1;
+  } else {
+    val window = val::global("window");
+    val availablefonts = window.call&lt;val&gt;("queryLocalFonts").await();
+    std::vector&lt;val&gt; vec = vecFromJSArray&lt;val&gt;(availablefonts);
+    int count = 0;
+    for (const val &amp;font : vec) {
+      std::string familyname0 = font["family"].as&lt;std::string&gt;();
+      int lfont = familyname0.size() + 2;
+      const char *familyname = familyname0.c_str();
+      char *fname = new char[lfont];
+      snprintf(fname, lfont, " %s", familyname);
+      char *regular = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), regular);
+      built_in_table.push_back({regular});
+
+      snprintf(fname, lfont, "B%s", familyname);
+      char *bold = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), bold);
+      built_in_table.push_back({bold});
+
+      snprintf(fname, lfont, "I%s", familyname);
+      char *italic = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), italic);
+      built_in_table.push_back({italic});
+
+      snprintf(fname, lfont, "P%s", familyname);
+      char *bi = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), bi);
+      // The returned fonts are already sorted.
+      built_in_table.push_back({bi});
+      delete[] fname;
+    }
+    return FL_FREE_FONT + count;
+  }
+</code></pre>
+<h2 id="step-8-some-mitigation-of-the-reentrancy-issue"><a class="header" href="#step-8-some-mitigation-of-the-reentrancy-issue">Step 8: Some mitigation of the reentrancy issue</a></h2>
+<p>As mentioned previously, since browsers are event-driven, you should avoid long while loops since these would block your page. FLTK's menu windows would loop until something is selected. The blocking can be (partially) mitigated by using <code>emscripten_sleep</code> in the <code> Fl_Emscripten_System_Driver::wait</code> method and enabling Asyncify support in Emscripten.
+Full mitigation would require removing while loops in menu code but that would be too intrusive!</p>
+<h2 id="step-9-getting-emscripten-support-for-fltk-rs"><a class="header" href="#step-9-getting-emscripten-support-for-fltk-rs">Step 9: Getting emscripten support for fltk-rs</a></h2>
+<p>All the work was done in <a href="https://github.com/MoAlyousef/fltk_wasm32_emscripten">a fork of FLTK</a> under the emscripten branch. Adding support in fltk-rs would require cloning the fork and building it as part of the fltk-rs build. By default we build in single-threaded mode to avoid the extra policy permission required for SharedArrayBuffer. The only changes required apart from the build system is exposing file reads/writes for the File System API due to the same limitation for the standard file operations.</p>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Things aren't perfect, mainly due to the reentrancy issue described before.
+I learned a lot in the process. And I got some nice demos to show you:</p>
+<ul>
+<li>C++ demo
+https://moalyousef.github.io/fltk_emscripten/
+<a href="https://moalyousef.github.io/fltk_emscripten/">(source code)</a></li>
+<li>Rust demo
+https://moalyousef.github.io/fltk-rs-emscripten-example/
+<a href="https://github.com/MoAlyousef/fltk-rs-emscripten-example">(source code)</a></li>
+</ul>
+<p>Thank you for reading!</p>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="WasmCompModel.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="WasmCompModel.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+
+
+    </div>
+    </body>
+</html>
