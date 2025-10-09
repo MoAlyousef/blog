@@ -6,7 +6,7 @@ Date: 2025-10-09
 This post is about getting FLTK to build for wasm and run in browsers!
 Source code can be found in [a fork of FLTK](https://github.com/MoAlyousef/fltk_wasm32_emscripten) under the emscripten branch.
 
-If you try to `git clone` FLTK and build it using the [Emscripten toolchain](https://emscripten.org/), you'll be met with a lot of errors. The first issue is FLTK's CMakeLists.txt. The build process conditionally includes the source files required for the target platform. In FLTK's case, when the build doesn't know what it's building for, it assumes Windows. So it will incorporate the Window's driver files which has win32 calls unidentified by the compiler, and the build fails.
+If you try to `git clone` stock FLTK and build it using the [Emscripten toolchain](https://emscripten.org/), you'll be met with a lot of errors. The first issue is FLTK's CMakeLists.txt. The build process conditionally includes the source files required for the target platform. In FLTK's case, when the build doesn't know what it's building for, it assumes Windows. So it will incorporate the Window's driver files which has win32 calls unidentified by the compiler, and the build fails.
 
 ## Step 1: CMake
 Extend the build to identify Emscripten as a platform, luckily CMake knows `Emscripten`, so that's as simple as adding:
@@ -67,7 +67,7 @@ This step will actually build and link correctly, even though it wouldn't show a
 
 ## Step 3: Actually deciding what's a Window
 I knew from the beginning that I was going to use the canvas for drawing. But the question of "what's a window" in the browser had me stumped for some time. I decided that an FLTK window should map to an HTMLDivElement.
-It should contain decorations (borders with a title bar and at least a close button). The decorations will be another `div`, and the client area would be the canvas. The window's handle (the int from before), would be incorporated into the div element's id. In essence my `Fl_Emscripten_Window_Driver::makeWindow()` method would contain something like:
+It should contain decorations (borders with a title bar and at least a close button). The decorations will be another `div`, and the client area would be the canvas. The window's handle (the int from before), would be incorporated into the div element's id. In essence my `Fl_Emscripten_Window_Driver::makeWindow()` method would contain this abomination:
 ```cpp
   EM_ASM(
       {
@@ -176,22 +176,10 @@ The above code should allow:
 - Dragging the div across the screen from its title bar, like you would any window on your desktop.
 - Allow Fl_Window::set_border(false) to hide the title bar.
 
-There's a downside to this approach however. FLTK allows embedding windows, while in the browser, you can't embed a canvas inside a canvas!
+There's a downside to this approach however. FLTK allows embedding windows, while in the browser, you can't embed another canvas or div inside a canvas! So that choice is still questionable!
 
 Plugging the rest of the Fl_Window_Driver methods and wiring them to emscripten methods was quite easy. Mapping FLTK events to browser events, FLTK cursor types to browser cursor types, FLTK fonts to browser fonts was some busy work but not that difficult.
 Events required forwarding via `Fl::handle` to the window/div in which they occured.
-Similarly implementing the screen driver methods like the screen sizes to `screen (or globalThis.screen)` was easy:
-```cpp
-using namespace emscripten;
-int Fl_Emscripten_Screen_Driver::w() {
-  val screen = val::global("screen");
-  return screen["availWidth"].as<int>();
-}
-int Fl_Emscripten_Screen_Driver::h() {
-  val screen = val::global("screen");
-  return screen["availHeight"].as<int>();
-}
-```
 
 An intrusive change to the FLTK sources outside of driver code:
 ```cpp
@@ -207,7 +195,51 @@ int Fl::run() {
 ```
 Browser environments operate on an event-driven model. An infinite while loop, which is common in native applications, would block the browser's main thread, causing the page to become unresponsive. 
 
-## Step 4: Graphics
+## Step 4: What's a screen
+Browsers offer a globalThis.screen, and by default a browser page has only one screen. so that might be a no brainer!
+However FLTK needs to know in which confines it's working. Some panels, the taskbar and browser menu actually part of the screen.
+I decided to go with availWidth and availHeight:
+```cpp
+using namespace emscripten;
+int Fl_Emscripten_Screen_Driver::w() {
+  val screen = val::global("screen");
+  return screen["availWidth"].as<int>();
+}
+int Fl_Emscripten_Screen_Driver::h() {
+  val screen = val::global("screen");
+  return screen["availHeight"].as<int>();
+}
+```
+Other screen driver methods on the FLTK side included getting mouse coordinates, handling text composition since you need to translate key presses inside text-accepting widgets into actual text, handling any special keys pressed with character keys. 
+The screen driver also covers handling cut/copy/paste which required me venturing into some new territories.
+I never had to deal with the browser's clipboard for example. Getting the clipboard text for example requires:
+```cpp
+std::string clipText =
+          emscripten::val::global("navigator")["clipboard"].call<val>("readText").await().as<std::string>();
+```
+Writing to the clipboard is also done via navigator.clipboard.writeText.
+
+Similarly getting an image from the clipboard isn't trivial either:
+```cpp
+EM_ASYNC_JS(EM_VAL, get_clipboard_image, (), {
+  const itemList = await navigator.clipboard.read();
+  let imageType;
+  const item = itemList.find(item => item.types.some(type => type.startsWith('image/')));
+  if (item) {
+    const imageBlob = await item.getType(imageType = item.types.find(type => type.startsWith('image/')));
+    const imageBitmap = await createImageBitmap(imageBlob);
+    const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
+    const context = canvas.getContext('2d');
+    context.drawImage(imageBitmap, 0, 0);
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    return imageData;
+  } else {
+    return null;
+  }
+});
+```
+
+## Step 5: Graphics
 FLTK on linux/bsd uses Cairo for drawing (default on wayland, requires FLTK_GRAPHICS_CAIRO on X11).
 The browser's canvas api is similar enough to cairo's graphics api, so that was very helpful in translating graphics calls to canvas calls. For example compare the following:
 ```cpp
@@ -247,7 +279,7 @@ Building this would finally show a window with whatever widget you put in it. Th
 
 Adding offscreen support, FLTK supports offscreen drawing via Fl_Offscreen and the Image Surface driver, and browsers support an Offscreen canvas. This requires enabling the Emscripten flag OFFSCREENCANVAS_SUPPORT. Which if enabled, should work out of the box.
 
-## Step 5: Reworking events
+## Step 6: Reworking events
 It's not enough to translate a browser event to an FLTK event:
 ```cpp
 static int match_mouse_event(int eventType) {
@@ -296,40 +328,64 @@ Same for key presses!
 It also turns out that you have to unregister events from closed windows (divs)!
 This step was probably the least interesting to work on and took a disproportionatly long time.
 
-## Step 6: Text essentials
-Being able to cut/copy/paste text required venturing into some new territories for me.
-I never had to deal with the browser's clipboard for example. Getting the clipboard text for example requires:
+## Step 7: Font support
+By default, FLTK has a set of 15 fonts which it supports automatically. Luckily these can be mapped to web-safe fonts which are available on all browsers. Some browsers (chrome and related) additionally provide a queryLocalFonts method which allows you to set a font from the host system:
 ```cpp
-std::string clipText =
-          emscripten::val::global("navigator")["clipboard"].call<val>("readText").await().as<std::string>();
-```
-Writing to the clipboard is also done via navigator.clipboard.writeText.
-
-Similarly getting an image from the clipboard isn't trivial either:
-```cpp
-EM_ASYNC_JS(EM_VAL, get_clipboard_image, (), {
-  const itemList = await navigator.clipboard.read();
-  let imageType;
-  const item = itemList.find(item => item.types.some(type => type.startsWith('image/')));
-  if (item) {
-    const imageBlob = await item.getType(imageType = item.types.find(type => type.startsWith('image/')));
-    const imageBitmap = await createImageBitmap(imageBlob);
-    const canvas = new OffscreenCanvas(imageBitmap.width, imageBitmap.height);
-    const context = canvas.getContext('2d');
-    context.drawImage(imageBitmap, 0, 0);
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    return imageData;
+  bool has_query_fonts_api = EM_ASM_INT({
+    let has_api = false;
+    if ("queryLocalFonts" in window) {
+      navigator.permissions.query({ name: "local-fonts" }).then((result) => {
+      if (result.state === "granted" || result.state === "prompt") {
+        has_api = true;
+      }});
+    }
+    return has_api;
+  });
+  // clang-format on
+  if (!has_query_fonts_api) {
+    Fl::set_font((Fl_Font)(FL_FREE_FONT + 1), name);
+    built_in_table.push_back({name});
+    return FL_FREE_FONT + 1;
   } else {
-    return null;
+    val window = val::global("window");
+    val availablefonts = window.call<val>("queryLocalFonts").await();
+    std::vector<val> vec = vecFromJSArray<val>(availablefonts);
+    int count = 0;
+    for (const val &font : vec) {
+      std::string familyname0 = font["family"].as<std::string>();
+      int lfont = familyname0.size() + 2;
+      const char *familyname = familyname0.c_str();
+      char *fname = new char[lfont];
+      snprintf(fname, lfont, " %s", familyname);
+      char *regular = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), regular);
+      built_in_table.push_back({regular});
+
+      snprintf(fname, lfont, "B%s", familyname);
+      char *bold = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), bold);
+      built_in_table.push_back({bold});
+
+      snprintf(fname, lfont, "I%s", familyname);
+      char *italic = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), italic);
+      built_in_table.push_back({italic});
+
+      snprintf(fname, lfont, "P%s", familyname);
+      char *bi = strdup(fname);
+      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), bi);
+      // The returned fonts are already sorted.
+      built_in_table.push_back({bi});
+      delete[] fname;
+    }
+    return FL_FREE_FONT + count;
   }
-});
 ```
 
-In all it wasn't so bad. 
-
-## Step 7: Experimental browser APIs
-Browsers provide a File Sytem API, that's how some sites allow you to open a file dialog and upload a file for example.
-This has limited availability unfortunately. Firefox for example doesn't support showOpenFilePicker and showDirectoryPicker.
+## Step 8: Supporting file dialogs
+FLTK provides an Fl_Native_File_Chooser which wraps the native file picker on all of its backends.
+Browsers provide a File Sytem API, and some support extensions which support showOpenFilePicker, showSaveFilePicker and showDirectoryPicker, that's how some sites allow you to open a file dialog and upload a file for example.
+This has limited availability unfortunately. Firefox for example doesn't support showing dialogs via the above-mentioned api. You can use an HTMLInputElement and set the type to `file` (equivalent to `<input type="file" />`), but after experimenting with that I found it quite limited. No writable handles, no directory traversal and other minor ones!
 Where it's supported, spawning a File dialog from FLTK in the browser should work:
 ```cpp
 // This translates the chooser type to a browser picker. We have 3 main types:
@@ -416,70 +472,22 @@ That's because the standard C/C++ file functions work only for Emscripten's virt
   writable.call<val>("close").await();
 ```
 
-Similarly, chrome and related browsers provided a queryLocalFonts method which allows you to set a font from the host system:
-```cpp
-  bool has_query_fonts_api = EM_ASM_INT({
-    let has_api = false;
-    if ("queryLocalFonts" in window) {
-      navigator.permissions.query({ name: "local-fonts" }).then((result) => {
-      if (result.state === "granted" || result.state === "prompt") {
-        has_api = true;
-      }});
-    }
-    return has_api;
-  });
-  // clang-format on
-  if (!has_query_fonts_api) {
-    Fl::set_font((Fl_Font)(FL_FREE_FONT + 1), name);
-    built_in_table.push_back({name});
-    return FL_FREE_FONT + 1;
-  } else {
-    val window = val::global("window");
-    val availablefonts = window.call<val>("queryLocalFonts").await();
-    std::vector<val> vec = vecFromJSArray<val>(availablefonts);
-    int count = 0;
-    for (const val &font : vec) {
-      std::string familyname0 = font["family"].as<std::string>();
-      int lfont = familyname0.size() + 2;
-      const char *familyname = familyname0.c_str();
-      char *fname = new char[lfont];
-      snprintf(fname, lfont, " %s", familyname);
-      char *regular = strdup(fname);
-      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), regular);
-      built_in_table.push_back({regular});
-
-      snprintf(fname, lfont, "B%s", familyname);
-      char *bold = strdup(fname);
-      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), bold);
-      built_in_table.push_back({bold});
-
-      snprintf(fname, lfont, "I%s", familyname);
-      char *italic = strdup(fname);
-      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), italic);
-      built_in_table.push_back({italic});
-
-      snprintf(fname, lfont, "P%s", familyname);
-      char *bi = strdup(fname);
-      Fl::set_font((Fl_Font)(count++ + FL_FREE_FONT), bi);
-      // The returned fonts are already sorted.
-      built_in_table.push_back({bi});
-      delete[] fname;
-    }
-    return FL_FREE_FONT + count;
-  }
-```
-
-## Step 8: Some mitigation of the reentrancy issue
+## Step 9: Working around limitations
+- Mitigating the reentrancy issue
 As mentioned previously, since browsers are event-driven, you should avoid long while loops since these would block your page. FLTK's menu windows would loop until something is selected. The blocking can be (partially) mitigated by using `emscripten_sleep` in the ` Fl_Emscripten_System_Driver::wait` method and enabling Asyncify support in Emscripten.
 Full mitigation would require removing while loops in menu code but that would be too intrusive!
 
-## Step 9: Getting emscripten support for fltk-rs
+- Virtual keyboard support for text accepting widgets on mobile
+When you use a mobile browser and tap into an HTMLInputElement (input) or a textarea element, you automatically get a virtual keyboard that you can type into. However, an Fl_Input or Fl_Text_Editor aren't the above mentioned elements. They're drawings in the canvas. While on Android you can manually show the keyboard and that would work, on ios it's just not possible.
+Some browsers provide a [Virtual Keyboard api](https://developer.mozilla.org/en-US/docs/Web/API/VirtualKeyboard_API), alas safari isn't one of them, nor is WebView on iOS, which is used by chrome and firefox on iOS.
+To actually support this, I would have to modify FLTK to make Fl_Input be backed by an input element, and Fl_Text_Editor be backed by a textarea element. The change was too intrusive so I dropped it. If eventually iOS browsers support the Virtual Keyboard API, I might implement this!
+
+## Step 10: Getting emscripten support for fltk-rs
 All the work was done in [a fork of FLTK](https://github.com/MoAlyousef/fltk_wasm32_emscripten) under the emscripten branch. Adding support in fltk-rs would require cloning the fork and building it as part of the fltk-rs build. By default we build in single-threaded mode to avoid the extra policy permission required for SharedArrayBuffer. The only changes required apart from the build system is exposing file reads/writes for the File System API due to the same limitation for the standard file operations.
 
-
 ## Conclusion
-Things aren't perfect, mainly due to the reentrancy issue described before.
-I learned a lot in the process. And I got some nice demos to show you:
+Overall, I wouldn’t recommend building a web UI that relies heavily on canvas-based rendering for its visuals and widgets. The limitations described in Step 9 are part of this. Additionally this approach sacrifices many of the benefits offered by native HTML, CSS, and JavaScript (accessibility and the sheer amount of man-years put into improving things). Development can also be cumbersome, as even small changes often require a full rebuild. Additionally, binary size becomes a concern—while a simple interface built with standard web technologies might only take a few kilobytes, FLTK wasm builds compiled with Emscripten can easily reach several hundred kilobytes, even with release builds, stripping and lto.
+Finally I can say, I learned a lot in the process, and I have 2 nice demos to show:
 - C++ demo
 https://moalyousef.github.io/fltk_emscripten/
 [(source code)](https://moalyousef.github.io/fltk_emscripten/)
